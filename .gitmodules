@@ -1,6 +1,6 @@
 [submodule "notebooks/theme"]
 	path = notebooks/theme
-	url = git@github.com:ODHK/hyrule_theme.git
+	url = https://github.com/ODHK/hyrule_theme.git
 [submodule "notebooks/assets"]
 	path = notebooks/assets
-	url = git@github.com:tijptjik/DS_assets.git
+	url = https://github.com/tijptjik/DS_assets.git
