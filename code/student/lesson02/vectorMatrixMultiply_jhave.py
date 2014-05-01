@@ -40,14 +40,14 @@ def vectorMatrixMultiply(vect,matr):
 
     for im in range(len(matr[0])):
         for iv in range(len(vect)):
-             newlist[iv] += matr[iv][im] * vect[iv]
+             newlist[iv] = matr[iv][im] * vect[iv]
             #  WRONG MATH: this returns the product    newlist[im][iv] = matr[iv][im] * vect[iv]
 
     return  newlist      
     """
 
     """ sum the product of row j in vect with value in col i """
-    return [sum(matr[i][j]*vect[j] for j in range(len(vect))) for i in range(len(matr))]     
+    return [sum(matr[j][i]*vect[j] for j in range(len(vect))) for i in range(len(matr[0]))]     
                         
 # call function        
 print vectorMatrixMultiply(vector,matrix)
