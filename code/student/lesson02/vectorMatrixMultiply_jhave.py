@@ -63,11 +63,20 @@ def matrixMatrixMultiply (m1,m2):
     """ nested nested nested """
     
    # """ TEST 1 
-    
-    
+    newlist=[[0 for x in xrange(len(m1[0]))] for x in xrange(len(matr2[0]))]
+    print "len(m1[0]:", len(m1[0],"len(m2[0]:", len(m2[0]
+     
+    sum= 0
+
     for k in range(len(m2)):
+        if sum!=0:
+            newlist[k][j]=sum
+
         sum=0
-        print "RESET sum:",sum
+        print "RESET TO ZERO sum:",sum
+    
+
+
         for j in range(len(m2)):
             for i in range(len(m1)):
                 print "i:",i,"j:",j,"k:",k,"m1[i][k]:",m1[i][k],"m2[j][i]:",m2[j][i]," (m1[i][k]*m2[j][i]):",(m1[i][k] * m2[j][i])#," sum(m1[i][k]*m2[j][i]):",sum(m1[i][k] * m2[j][i])
