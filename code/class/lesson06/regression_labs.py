@@ -33,7 +33,7 @@ plt.scatter(speed, dist, c='b', marker='o')
 plt.plot(speed, regr.predict(speed), color='green')
 plt.show()
 
-# Attempt 2 : Lasso Regression Model with 3nd order polynominal 
+# Attempt 2 : Lasso Regression Model with 3nd order polynominal
 stop['speed_squared'] = stop['speed'] ** 2
 speed_squared = stop[['speed','speed_squared']].values
 
@@ -48,7 +48,7 @@ plt.scatter(speed, dist, c='b', marker='o')
 plt.plot(speed, lasso.predict(speed_squared), color='green')
 plt.show()
 
-# Attempt 3 : Ridge Regression Model with 2nd order polynominal 
+# Attempt 3 : Ridge Regression Model with 2nd order polynominal
 ridge = linear_model.Ridge()
 ridge.fit(speed_squared, dist)
 
@@ -60,7 +60,7 @@ plt.scatter(speed, dist, c='b', marker='o')
 plt.plot(speed, ridge.predict(speed_squared), color='green')
 plt.show()
 
-# Attempt 4 : Ridge Regression Model with 3nd order polynominal 
+# Attempt 4 : Ridge Regression Model with 3nd order polynominal
 stop['speed_boxed'] = stop['speed'] ** 3
 speed_boxed = stop[['speed','speed_squared','speed_boxed']].values
 
@@ -75,7 +75,7 @@ plt.scatter(speed, dist, c='b', marker='o')
 plt.plot(speed, ridge.predict(speed_boxed), color='green')
 plt.show()
 
-# Attempt 5 : Ridge Regression Model with 3nd order polynominal 
+# Attempt 5 : Ridge Regression Model with 3nd order polynominal
 
 for a in [0.1,0.5,1,5,10]:
 
@@ -85,6 +85,19 @@ for a in [0.1,0.5,1,5,10]:
 	print "\nSpeed | Distance @ " + str(a)
 	print "SSE : %0.4f" % (SSE(ridge.predict(speed_boxed), dist)) # SSE : SSE : 212.8165
 	print "R2 : %0.4f" % (ridge.score(speed_boxed, dist)) # R2 : 0.6730
+
+# Attempt 6 : Ridge Regression Model with 3nd order polynominal
+ridge = linear_model.Ridge()
+ridge.fit(speed_boxed, dist)
+
+print "\nSpeed | Distance"
+print "SSE : %0.4f" % (SSE(ridge.predict(speed_boxed), dist)) # SSE : SSE : 212.8165
+print "R2 : %0.4f" % (ridge.score(speed_boxed, dist)) # R2 : 0.6730
+
+plt.scatter(speed, dist, c='b', marker='o')
+plt.plot(speed, ridge.predict(speed_boxed), color='green')
+plt.show()
+
 
 """
 Find the best fitting model to predict mileage for gallon
@@ -96,7 +109,6 @@ cars_input = cars._get_numeric_data()
 cars_input = cars_input.dropna(axis=0)
 mpg = cars_input['MPG.city']
 cars_input = cars_input.drop(['MPG.highway','MPG.city'],1)
-cars_input = cars_input.fillna(0)
 
 fp_value = feature_selection.univariate_selection.f_regression(cars_input, mpg)
 p_value = zip(cars_input.columns.values,fp_value[1])

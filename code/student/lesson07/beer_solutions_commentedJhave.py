@@ -1,6 +1,8 @@
 """
 Beers
 """
+import pandas as pd
+from sklearn import linear_model, metrics
 
 logm = linear_model.LogisticRegression()
 
@@ -18,6 +20,7 @@ def good(x):
 url = 'http://www-958.ibm.com/software/analytics/manyeyes/datasets/af-er-beer-dataset/versions/1.txt'
 
 beer = pd.read_csv(url, delimiter="\t")
+print beer.head()
 beer = beer.dropna()
 beer['Good'] = beer['WR'].apply(good)
 

@@ -43,6 +43,33 @@ For questions, please turn to any of the following communication channels for su
 * Mailing List
 * Email
 
+### Agenda
+
+| Lesson 	| Topic 	| Date 	|
+|:------:	|:-----:	|:----:	|
+|    1   	| Intro to Data Science | Past |
+|    2   	| Python Modules | Past |
+|    3    	| Linear Algebra | Past |
+|    4    	| Data Queries | Past |
+|    5   	| Linear Regression | Past |
+|    6  	| Polynominal Regression| Past |
+|    7    	| Logistic Regression | Past |
+|    8    	| KNN Clustering | Past |
+|    9    	| Naive Bayes | Mon, 26 May |
+|    10    	| Decision Trees | Wed, 28 May |
+|    11   	| Support Vector Machine | Mon, 02 Jun |
+|    12    	| K-Means| Wed, 04 Jun |
+|    13   	| Guest Speaker: Guy Freeman | Mon, 09 Jun |
+|    14    	| PCA | Wed, 11 Jun |
+|    15    	| Random Forests | Mon, 16 Jun |
+|    16    	| Data Exploration and Diagnostics | Wed, 18 Jun |
+|    17    	| Special Session | Mon, 23 Jun |
+|    18    	| Recommendation Systems | Wed, 25 Jun |
+|    19    	| Guest Speaker: Han Xu | Mon, 30 Jun |
+|    20   	| Time Series | Wed, 2 Jul |
+|    21    	| Final Project Workshop | Mon, 7 Jul |
+|    22    	| Final Project Presentations | Wed, 9 Jul |
+
 ### Contact
 
 Data Science in Hong Kong is run by @tijptjik

@@ -1,6 +1,11 @@
 """
 Beers
 """
+import numpy as np
+import pylab as pl
+
+from sklearn.linear_model import linear_model
+
 
 logm = linear_model.LogisticRegression()
 
