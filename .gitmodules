@@ -1,6 +1,3 @@
 [submodule "notebooks/theme"]
 	path = notebooks/theme
 	url = https://github.com/ODHK/hyrule_theme.git
-[submodule "notebooks/assets"]
-	path = notebooks/assets
-	url = https://github.com/tijptjik/DS_assets.git
