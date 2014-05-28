@@ -12,7 +12,7 @@ def SSE(pred, resp):
 Find the best fitting model to predict breaking distance for car speed
 """
 
-stop = pd.read_csv(DATA_DIR + 'cars1920.csv')
+stop = pd.read_csv(DATA_DIR + 'cars.csv')
 
 speed = [[x] for x in stop['speed']]
 dist = stop['dist'].values
