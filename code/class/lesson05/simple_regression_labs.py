@@ -1,4 +1,4 @@
-from __future__ import division
+git pullfrom __future__ import division
 import pandas as pd
 import matplotlib.pyplot as plt
 from numpy import log, exp, mean
