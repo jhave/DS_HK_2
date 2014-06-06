@@ -5,9 +5,9 @@ import sys
 
 from bs4 import BeautifulSoup
 
-DIR = "../../../../data/poetryFoundation/poem/"
+DIR = "../../../../data/poetryFoundation/"
 
-for root, subFolders, files in os.walk(DIR):
+for root, subFolders, files in os.walk(DIR+"poem/"):
 
         for filename in files:
             
@@ -17,7 +17,7 @@ for root, subFolders, files in os.walk(DIR):
             
             soup = BeautifulSoup(open(filePath))
             
-            poem = soup.find(id="poem")
+            poem = soup.find("div", { "class" : "poem" })
             
             pa = soup.select('span.author a')
             
@@ -38,7 +38,8 @@ for root, subFolders, files in os.walk(DIR):
 
                # NOTE: features are stored here
                # in this dict that holds lists of labels
-                categories = {}
+               # QUESTION how-to make it persistent
+                fn + "_categories" = {}
                 # labels are all within 'about' div
                 about = soup.find('div', attrs={'class' : 'about'})
                 # nested within their own section
@@ -53,7 +54,7 @@ for root, subFolders, files in os.walk(DIR):
                         print category.encode('utf-8'), ": "
 
                         # create a list within dict for this category
-                        categories[category] = []
+                        [fn + "_categories"][category] = []
 
                         lbs = labels.find_next_siblings()
 
@@ -80,6 +81,12 @@ for root, subFolders, files in os.walk(DIR):
                 txt_fn_path = dir+"/"+txt_fn
                 print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
                 f=open(txt_fn_path,'w+')
-                f.write(poem.encode('utf-8').strip())
+                f.write(poem.text.encode('utf-8').strip())
                 f.close();
-
+"""
+                txt_fn_path = dir+"/"+txt_fn+"_LABELS"
+                print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
+                f=open(txt_fn_path,'w+')
+                f.write(poem.text.encode('utf-8').strip())
+                f.close();
+"""
