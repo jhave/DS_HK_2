@@ -92,16 +92,34 @@ for root, subFolders, files in os.walk(DIR+"html/"):
 
 
                 # JSON write to json folder
-               
+
+                c_key_valList={}
+                cvalues=""
+
+                for k,v in categories.items():
+                    print("key: ", k)
+                    for cv in v:
+                        #print("labels:",cv)
+                        cvalues=cvalues+","+cv
+
+                    c_key_valList[k] = cvalues
+
+
+                #print("labels as list:"+ cvalues)
+                print ("c_key_valList:", c_key_valList)
+
+                for key, value in c_key_valList.items():
+                    print(k,value)
+        """     
                 f_json=open(json_fn_path,'a')
             
                 print categories
                 type(categories)
 
-                json.dump([html_num.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB.encode('utf-8') } , {'poem_dop' : poem_dop.encode('utf-8')} , {'category':key,"label":value} for key, value in categories.items() ] , f_json)
-               
-            # f_json.close();
-            
+                json.dump([html_num.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB.encode('utf-8') } , {'poem_dop' : poem_dop.encode('utf-8')} , {'category':key,"label":value} for key, value in c_key_valList.items() ] , f_json)
+              
+                f_json.close();
+            """
             # # WRITE Poems to txt folder
             # txt_fn = html_num+".txt"
             # #print "TXT Filename: ", txt_fn.encode('utf-8')
