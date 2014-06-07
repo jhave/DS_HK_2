@@ -84,55 +84,27 @@ for root, subFolders, files in os.walk(DIR+"html/"):
 
                         print categories
 
-                for key in categories.keys():
-                    print("\n"+key.encode('utf-8'))
-                    # for listt in categories[key]:
-                    #         print(listt)
-                
 
-
+      
                 # JSON write to json folder
-
-                c_key_valList={}
-                cvalues=""
-
-                for k,v in categories.items():
-                    #print("key: ", k)
-                    for cv in v:
-                        #print("labels:",cv)
-                        cvalues=cvalues+","+cv
-                        c_key_valList[k] = cvalues
-                        
-                    cvalues=""
-
-
-                #print("labels as list:"+ cvalues)
-                print ("c_key_valList:", c_key_valList)
-
-                for key, value in c_key_valList.items():
-                    print("OK:::::",k,value)
-           
-                """  
                 f_json=open(json_fn_path,'a')
             
-                print categories
-                type(categories)
-
-                json.dump([html_num.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB.encode('utf-8') } , {'poem_dop' : poem_dop.encode('utf-8')} , {'category':key,"label":value} for key, value in c_key_valList.items() ] , f_json)
+                json.dump([html_num.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB.encode('utf-8') } , {'poem_dop' : poem_dop.encode('utf-8')} ], f_json)
               
                 f_json.close();
             
-                """
-            # # WRITE Poems to txt folder
-            # txt_fn = html_num+".txt"
-            # #print "TXT Filename: ", txt_fn.encode('utf-8')
 
-            # dir = DIR+'txt'
-            # txt_fn_path = dir+"/"+txt_fn
-            # # print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
-            # f=open(txt_fn_path,'w+')
-            # f.write(poem.text.encode('utf-8').strip())
-            # f.close();
+                
+            # WRITE Poems to txt folder
+            txt_fn = html_num+".txt"
+            #print "TXT Filename: ", txt_fn.encode('utf-8')
+
+            dir = DIR+'txt'
+            txt_fn_path = dir+"/"+txt_fn
+            # print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
+            f=open(txt_fn_path,'w+')
+            f.write(poem.text.encode('utf-8').strip())
+            f.close();
 
             
      
