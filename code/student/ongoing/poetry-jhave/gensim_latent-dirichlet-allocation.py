@@ -30,6 +30,13 @@ class MySentences(object):
 # a memory-friendly iterator
 sentences = MySentences(DIR+'/txt/')
 
-
+""""
+NOT WORKING ::: ValueError: too many values to unpack
+""""
 # LSI model
-lsi = gensim.models.lsimodel.LsiModel(sentences, num_topics=400)
+lsi = gensim.models.lsimodel.LsiModel(sentences, num_topics=40)
+#print(lsi[doc_bow]) # get topic probability distribution for a document
+
+# LDA model
+#lda = LdaModel(sentences, num_topics=40)
+#print(lda[doc_bow]) # get topic probability distribution for a document
