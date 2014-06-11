@@ -65,7 +65,7 @@ corpus = MyCorpus(test_data_dir) # create a dictionary
 # for vector in corpus: # convert each document to a bag-of-word vector
 #      print vector
 
-numpy_matrix = gensim.matutils.corpus2dense(corpus, corpus.topics)
+#numpy_matrix = gensim.matutils.corpus2dense(corpus, corpus.topics)
 
 topics = 200
 num_clusters = 8
@@ -77,75 +77,75 @@ print "Create Tfidf model"
 tfidf = TfidfModel(corpus)
 corpus_tfidf = tfidf[corpus] 
 
-# for doc in corpus_tfidf: 
-#     print doc 
+for doc in corpus_tfidf: 
+    print doc 
 
-# print "****************"
-# print "Create LSI model"
-# #lsi_model = LsiModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics)
-# lsi_model = LsiModel(corpus, id2word=corpus.dictionary, num_topics=topics)
-# corpus_lsi = lsi_model[corpus]
-
-
-# print "****************"
-# print "Create LDA model"
-# #lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
-# lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
-# corpus_lda = lda_model[corpus]
-
-# print "Done creating models"
+print "****************"
+print "Create LSI model"
+#lsi_model = LsiModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics)
+lsi_model = LsiModel(corpus, id2word=corpus.dictionary, num_topics=topics)
+corpus_lsi = lsi_model[corpus]
 
 
+print "****************"
+print "Create LDA model"
+#lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
+lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
+corpus_lda = lda_model[corpus]
 
-# print "*********************"
-# print "\n\nPrint LSI model\n"
-# topic_id = 0
-# for topic in lsi_model.show_topics(num_words=5):
-#     print "TOPIC (LSI2) " + str(topic_id) + " : " + topic
-#     topic_id+=1
+print "Done creating models"
 
 
 
-#for doc in corpus_lsi: # both bow->tfidf and tfidf->lsi transformations are actually executed here, on the fly
-#    print "Doc " + str(doc)
-
-# corpus_lsi_dense = corpus2dense(corpus_lsi, topics)
-# print "Dense Matrix Shape " + str(corpus_lsi_dense.shape)
-
-
-# #attempt scikit integration
-# km = KMeans(num_clusters, init='random', max_iter=100, n_init=1, verbose=1)
-# km.fit(corpus_lsi_dense)
+print "*********************"
+print "\n\nPrint LSI model\n"
+topic_id = 0
+for topic in lsi_model.show_topics(num_words=5):
+    print "TOPIC (LSI2) " + str(topic_id) + " : " + topic
+    topic_id+=1
 
 
-# #attempt scipy integration
-# # computing K-Means with K = 2 (2 clusters)
-# centroids,_ = kmeans(corpus_lsi_dense,6)
-# # assign each sample to a cluster
-# idx,_ = vq(corpus_lsi_dense,centroids)
 
-# # some plotting using numpy's logical indexing
-# plot(
-#     corpus_lsi_dense[idx==0,0],corpus_lsi_dense[idx==0,1],'ob',
-#     corpus_lsi_dense[idx==1,0],corpus_lsi_dense[idx==1,1],'or',
-#     corpus_lsi_dense[idx==2,0],corpus_lsi_dense[idx==2,1],'og',
-#     corpus_lsi_dense[idx==3,0],corpus_lsi_dense[idx==3,1],'xr'
-# )
+for doc in corpus_lsi: # both bow->tfidf and tfidf->lsi transformations are actually executed here, on the fly
+   print "Doc " + str(doc)
 
-# plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
-# show()
+corpus_lsi_dense = corpus2dense(corpus_lsi, topics)
+print "Dense Matrix Shape " + str(corpus_lsi_dense.shape)
 
-# #print str(km.labels_)
-# labels = km.labels_      #<============WRONG
-# print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_)
-# print "Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_)
-# print "V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_)
-# print "Adjusted Rand-Index: %.3f" %\
-#      metrics.adjusted_rand_score(labels, km.labels_)
-# print "Silhouette Coefficient: %0.3f" % metrics.silhouette_score(
-#    corpus_lsi_dense, labels, sample_size=100)
 
-# print
+#attempt scikit integration
+km = KMeans(num_clusters, init='random', max_iter=100, n_init=1, verbose=1)
+km.fit(corpus_lsi_dense)
+
+
+#attempt scipy integration
+# computing K-Means with K = 2 (2 clusters)
+centroids,_ = kmeans(corpus_lsi_dense,6)
+# assign each sample to a cluster
+idx,_ = vq(corpus_lsi_dense,centroids)
+
+# some plotting using numpy's logical indexing
+plot(
+    corpus_lsi_dense[idx==0,0],corpus_lsi_dense[idx==0,1],'ob',
+    corpus_lsi_dense[idx==1,0],corpus_lsi_dense[idx==1,1],'or',
+    corpus_lsi_dense[idx==2,0],corpus_lsi_dense[idx==2,1],'og',
+    corpus_lsi_dense[idx==3,0],corpus_lsi_dense[idx==3,1],'xr'
+)
+
+plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
+show()
+
+#print str(km.labels_)
+labels = km.labels_      #<============WRONG
+print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_)
+print "Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_)
+print "V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_)
+print "Adjusted Rand-Index: %.3f" %\
+     metrics.adjusted_rand_score(labels, km.labels_)
+print "Silhouette Coefficient: %0.3f" % metrics.silhouette_score(
+   corpus_lsi_dense, labels, sample_size=100)
+
+print
 
 
 
