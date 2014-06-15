@@ -6,6 +6,8 @@ gensim + scikit clustering vs scipy clustering (DEBUG)
 
 """
 
+import operator
+
 import logging
 from scipy.odr import models
 from sklearn import metrics
@@ -24,6 +26,11 @@ import logging
 from gensim.corpora import mmcorpus, Dictionary
 from gensim.models import lsimodel, ldamodel, tfidfmodel, rpmodel, logentropy_model, TfidfModel, LsiModel, LdaModel
 from gensim import matutils,corpora
+
+from gensim import similarities
+from time import time
+ 
+t0=time()
 
 from scipy.cluster.vq import kmeans,vq
 
@@ -45,16 +52,16 @@ class MyCorpus(object):
     def __init__(self, top_dir):
         self.top_dir = top_dir
         self.dictionary = gensim.corpora.Dictionary(iter_documents(top_dir))
-        #self.
+        
         """
-        ... Stop words ...
+        ... Stop words removed using .filter_extremes
         Filter out tokens that appear in
 
             less than no_below documents (absolute number) or
             more than no_above documents (fraction of total corpus size, not absolute number).
         
         """
-        self.dictionary.filter_extremes(no_below=2,no_above=0.1, ) # check API docs for pruning params
+        self.dictionary.filter_extremes(no_below=5,no_above=0.6, ) # check API docs for pruning params
 
     def __iter__(self):
         for tokens in iter_documents(self.top_dir):
@@ -67,85 +74,118 @@ corpus = MyCorpus(test_data_dir) # create a dictionary
 
 #numpy_matrix = gensim.matutils.corpus2dense(corpus, corpus.topics)
 
-topics = 200
-num_clusters = 8
-passes = 1
-
 
 print "****************"
 print "Create Tfidf model"
 tfidf = TfidfModel(corpus)
 corpus_tfidf = tfidf[corpus] 
 
-for doc in corpus_tfidf: 
-    print doc 
+limiter=0
 
-print "****************"
-print "Create LSI model"
-#lsi_model = LsiModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics)
-lsi_model = LsiModel(corpus, id2word=corpus.dictionary, num_topics=topics)
-corpus_lsi = lsi_model[corpus]
-
-
-print "****************"
-print "Create LDA model"
-#lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
-lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
-corpus_lda = lda_model[corpus]
-
-print "Done creating models"
+# SORTING ATTEMPTS 
+# does NOT work, error:                         corpus_tfidf.sort()   
+#                                               corpus_tfidf.sort(key=operator.itemgetter(1))
+# SORTS on first index                          sorted(corpus_tfidf, reverse=True)
+# IndexError: list index out of range           sorted(corpus_tfidf, key=lambda x: x[0])
 
 
-
-print "*********************"
-print "\n\nPrint LSI model\n"
-topic_id = 0
-for topic in lsi_model.show_topics(num_words=5):
-    print "TOPIC (LSI2) " + str(topic_id) + " : " + topic
-    topic_id+=1
+for doc in corpus_tfidf:
+    if limiter < 100: 
+        print "limiter:",limiter,"\n",doc
+    for dw in doc:
+        limiter+=1
+        if limiter < 100:
+            print dw,corpus.dictionary[dw[0]]
 
 
 
-for doc in corpus_lsi: # both bow->tfidf and tfidf->lsi transformations are actually executed here, on the fly
-   print "Doc " + str(doc)
+# print "*** Similarities demo: https://gist.github.com/clemsos/7692685 ***"
+# print "Create similarity matrix of all files"
+# print '-'*10
+# index = similarities.Similarity('tmp/tst', corpus, num_features=12)
+# print "We compute similarities from the TF-IDF corpus : %s"%type(index)
+# #index.save('/tmp/deerwester.index')
+# #index = similarities.MatrixSimilarity.load('/tmp/deerwester.index')
+ 
+# sims = index[corpus_sims]
+# print "Similarity matrix for all documents in the corpus %s"% type(sims)
+# print 
+# print "Done in %.3fs"%(time()-t0)
 
-corpus_lsi_dense = corpus2dense(corpus_lsi, topics)
-print "Dense Matrix Shape " + str(corpus_lsi_dense.shape)
+
+# topics = 20
+# num_clusters = 6
+# passes = 3
 
 
-#attempt scikit integration
-km = KMeans(num_clusters, init='random', max_iter=100, n_init=1, verbose=1)
-km.fit(corpus_lsi_dense)
+# print "****************"
+# print "Create LSI model"
+# #lsi_model = LsiModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics)
+# lsi_model = LsiModel(corpus, id2word=corpus.dictionary, num_topics=topics)
+# corpus_lsi = lsi_model[corpus]
 
 
-#attempt scipy integration
-# computing K-Means with K = 2 (2 clusters)
-centroids,_ = kmeans(corpus_lsi_dense,6)
-# assign each sample to a cluster
-idx,_ = vq(corpus_lsi_dense,centroids)
+# print "****************"
+# print "Create LDA model"
+# #lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
+# lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
+# corpus_lda = lda_model[corpus]
 
-# some plotting using numpy's logical indexing
-plot(
-    corpus_lsi_dense[idx==0,0],corpus_lsi_dense[idx==0,1],'ob',
-    corpus_lsi_dense[idx==1,0],corpus_lsi_dense[idx==1,1],'or',
-    corpus_lsi_dense[idx==2,0],corpus_lsi_dense[idx==2,1],'og',
-    corpus_lsi_dense[idx==3,0],corpus_lsi_dense[idx==3,1],'xr'
-)
+# print "Done creating models"
 
-plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
-show()
 
-#print str(km.labels_)
-labels = km.labels_      #<============WRONG
-print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_)
-print "Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_)
-print "V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_)
-print "Adjusted Rand-Index: %.3f" %\
-     metrics.adjusted_rand_score(labels, km.labels_)
-print "Silhouette Coefficient: %0.3f" % metrics.silhouette_score(
-   corpus_lsi_dense, labels, sample_size=100)
 
-print
+# print "*********************"
+# print "\n\nPrint LSI model\n"
+# topic_id = 0
+# for topic in lsi_model.show_topics(num_words=3):
+#     # print "TOPIC (LSI2) " + str(topic_id) + " : " + topic
+#     print topic
+#     topic_id+=1
+
+
+
+# #for doc in corpus_lsi: # both bow->tfidf and tfidf->lsi transformations are actually executed here, on the fly
+# #   print "Doc " + str(doc)
+
+# corpus_lsi_dense = corpus2dense(corpus_lsi, topics)
+# print "Dense Matrix Shape " + str(corpus_lsi_dense.shape)
+
+# max_iter_k=100
+# n_init_k = 5
+# init_k='random'
+# print "********** \n scikit integration  max_iter=",max_iter_k," n_inits=",n_init_k
+# km = KMeans(num_clusters, init_k, max_iter_k, n_init_k, verbose=0)
+# km.fit(corpus_lsi_dense)
+
+# num_k_clusters = 6
+# print "computing K-Means with K = ",num_k_clusters, " clusters"
+# centroids,_ = kmeans(corpus_lsi_dense,num_k_clusters)
+# # assign each sample to a cluster
+# idx,_ = vq(corpus_lsi_dense,centroids)
+
+# # some plotting using numpy's logical indexing
+# plot(
+#     corpus_lsi_dense[idx==0,0],corpus_lsi_dense[idx==0,1],'ob',
+#     corpus_lsi_dense[idx==1,0],corpus_lsi_dense[idx==1,1],'or',
+#     corpus_lsi_dense[idx==2,0],corpus_lsi_dense[idx==2,1],'og',
+#     corpus_lsi_dense[idx==3,0],corpus_lsi_dense[idx==3,1],'xr'
+# )
+
+# plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
+# show()
+
+# #print str(km.labels_)
+# labels = km.labels_      #<============WRONG
+# print "Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_)
+# print "Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_)
+# print "V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_)
+# print "Adjusted Rand-Index: %.3f" %\
+#      metrics.adjusted_rand_score(labels, km.labels_)
+# print "Silhouette Coefficient: %0.3f" % metrics.silhouette_score(
+#    corpus_lsi_dense, labels, sample_size=100)
+
+# print
 
 
 
