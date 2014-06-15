@@ -46,7 +46,7 @@ from nltk import Text
 
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
-JSON_FILE  =  "json/poetryFoundation_JSON_6.txt"
+JSON_FILE  =  "json/poetryFoundation_JSON.txt"
 
 
 from json import JSONDecoder
@@ -75,13 +75,13 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
     for data in json_parse(infh):
         # process object 
         cnt=cnt+1
-        print "poem:", cnt
+        print "cnt:", cnt
         for idx, val in enumerate(data):
             # print idx, val
             # retrieve the name of associated txt file containing the poem
             if idx==0:
                 txt_fn= DATA_DIR+"txt/"+val+".txt"
-                print txt_fn
+                #print txt_fn
 
                 # LOAD THE POEM HERE
                 #
@@ -127,7 +127,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                             largest_word=word
 
                     line_len = len(nltk.word_tokenize(line))
-                    print"line_len:",line_len,line
+                    #print"line_len:",line_len,line
                     num_of_words = num_of_words + line_len
                     if line_len>longest_line:
                         longest_line=line_len
@@ -144,7 +144,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                             num_of_verses=num_of_verses+1
                             vb=0
                             tvl=tvl + verse_len
-                            print "verse"
+                            #print "verse"
                              
 
 
