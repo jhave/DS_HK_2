@@ -13,7 +13,8 @@ from sklearn.datasets import fetch_20newsgroups
 from sklearn.metrics.pairwise import linear_kernel
 
 twenty = fetch_20newsgroups()
-print twenty.head()
+#print twenty.head()
+
 print "_____________"
 
 tfidf = TfidfVectorizer().fit_transform(twenty.data)
