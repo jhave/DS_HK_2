@@ -40,7 +40,9 @@ import random
 
 
 
-
+#
+#  IMPORTANT : while testing change this dir
+#
 DATA_DIR  =  "../../../../data/poetryFoundation/txt_6/"
 #  NOTE: "txt_6" directory contains only 6 files for testing
 GENERATED_DIR  =  "../../../../data/poetryFoundation/generated/tangent1_synset/txt/"
@@ -54,6 +56,9 @@ GENERATED_DIR  =  "../../../../data/poetryFoundation/generated/tangent1_synset/t
 
 def find_synset_word(word):
     
+
+    wordstring=word
+
     # get rid of punctuation
     #wordstring.translate(None, string.punctuation)
     word_punct = strip_punctuation(word)
@@ -62,7 +67,6 @@ def find_synset_word(word):
 
     syllableSize=syllables_en.count(word)
 
-    ##print "\n\n******************\n ENTERING find synsetWord word is: ", word ,syllableSize
     synsets = wn.synsets(word)
     shuffle(synsets)
     #print word,"synset:",synsets
@@ -94,23 +98,23 @@ def find_synset_word(word):
         #print "replacement_candidates:",replacement_candidates
 
         for wordstring in replacement_candidates:
-	        #find an approximate matchb
-	        #print "wordstring in name:",wordstring
-	        if (approx_equal(wordstring,word) and wordstring.lower() != word.lower() and len(wordstring)>len(word)):
-	            #print "SYNSET approx_equal:",word,wordstring
-	            return wordstring
-	        #len same, word not
-	        if(len(wordstring) == len(word) and wordstring.lower() != word.lower()):
-	            #print "SYNSET len same, word not:",word,wordstring
-	            return wordstring
+            #find an approximate matchb
+            #print "wordstring in name:",wordstring
+            if (approx_equal(wordstring,word) and wordstring.lower() != word.lower() and len(wordstring)>len(word)):
+                #print "SYNSET approx_equal:",word,wordstring
+                return wordstring+punct
+            #len same, word not
+            if(len(wordstring) == len(word) and wordstring.lower() != word.lower()):
+                #print "SYNSET len same, word not:",word,wordstring
+                return wordstring+punct
 
-	        if(syllables_en.count(wordstring) == syllableSize and wordstring.lower() != word.lower()):
-	            #print "SYNSET syllable same, word not:",word,wordstring
-	            return wordstring
+            if(syllables_en.count(wordstring) == syllableSize and wordstring.lower() != word.lower()):
+                #print "SYNSET syllable same, word not:",word,wordstring
+                return wordstring+punct
      
 
     #print "SYNSET escape case, return original:",word
-    return    word
+    return    wordstring
 
 
 
@@ -138,8 +142,8 @@ def strip_punctuation(word):
     punct=""
     for char in my_str:
         if char not in punctuations:
-        	##print "CHAR:", char
-        	no_punct = no_punct + char
+            ##print "CHAR:", char
+            no_punct = no_punct + char
         else:
             punct = char
 
@@ -175,7 +179,7 @@ for subdir, dirs, files in os.walk(DATA_DIR):
                 new_line="\n"
 
             cnt=cnt+1
-            print len(line),"line is long"
+            #print len(line),"line is long"
             
 
             # if line is not empty, push each word of line into array with syllable cnt
@@ -199,10 +203,10 @@ for subdir, dirs, files in os.walk(DATA_DIR):
                                 #print word+" random personal_pronouns: *"+replacement_word+"*"
                                 new_line += replacement_word+" "
                         else:
-                              print "verse GAP"
+                              #print "verse GAP"
                               new_line += "\n"
-            else:
-                print len(line),"line break"
+            #else:
+                #print len(line),"line break"
                 #new_line += "\n"
 
 
@@ -212,26 +216,26 @@ for subdir, dirs, files in os.walk(DATA_DIR):
                 
             new_poem += new_line
 
-            #print "\nLINE:",line,"\nNEW LINE:",new_line
+        #print "\nLINE:",line,"\nNEW LINE:",new_line
 
 
 
-	    # 
-	    # WRITE new POEM TO FILE
-	    #
-	    txt_fn = html_file_number+".txt"
-	    #print "TXT Filename: ", txt_fn.encode('utf-8')
+        # 
+        # WRITE new POEM TO FILE
+        #
+        txt_fn = html_file_number+".txt"
+        #print "TXT Filename: ", txt_fn.encode('utf-8')
 
-	    txt_fn_path = GENERATED_DIR+"/"+txt_fn
-	    #print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
-	    f=open(txt_fn_path,'w+')
+        txt_fn_path = GENERATED_DIR+"/"+txt_fn
+        #print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
+        f=open(txt_fn_path,'w+')
 
-	    dp = new_poem
-	    f.write(dp)
+        dp = new_poem
+        f.write(dp)
 
-	    f.close();
-	    #
-	print new_poem
+        f.close();
+        
+    	#print new_poem
 
 
 

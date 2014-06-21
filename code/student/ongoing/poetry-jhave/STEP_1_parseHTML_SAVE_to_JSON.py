@@ -143,28 +143,31 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         # labels are all within 'about' div
                         about = soup.find('div', attrs={'class' : 'about'})
                         # nested within their own section
-                        ps_about = about.find_all('p', attrs={'class' : 'section'})
+                        
+                        #print "magazing entries have no labels:",about
+                        if about != None:
+                            ps_about = about.find_all('p', attrs={'class' : 'section'})
 
-                        for slug in ps_about:
-                            labels = slug.find('span', attrs={'class' : 'slug'})
+                            for slug in ps_about:
+                                labels = slug.find('span', attrs={'class' : 'slug'})
 
-                            if labels.text  != 'Poet':
-                                
-                                category = labels.text    
-                                #print category.encode('utf-8'), ": "
+                                if labels.text  != 'Poet':
+                                    
+                                    category = labels.text    
+                                    #print category.encode('utf-8'), ": "
 
-                                # create a list within dict for this category
-                                categories[category] = []
+                                    # create a list within dict for this category
+                                    categories[category] = []
 
-                                lbs = labels.find_next_siblings()
+                                    lbs = labels.find_next_siblings()
 
-                                for lb in lbs:
-                                    categories[category].append(lb.text)
+                                    for lb in lbs:
+                                        categories[category].append(lb.text)
 
-                                # for cat_label in categories[category]:
-                                #     print cat_label.encode('utf-8')
+                                    # for cat_label in categories[category]:
+                                    #     print cat_label.encode('utf-8')
 
-                                #print categories
+                                    #print categories
 
 
               
