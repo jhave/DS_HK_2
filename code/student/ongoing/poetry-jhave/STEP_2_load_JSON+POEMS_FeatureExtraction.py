@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 
 USING the JSON file
@@ -46,7 +48,7 @@ from nltk import Text
 
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
-JSON_FILE  =  "json/poetryFoundation_JSON.txt"
+JSON_FILE  =  "json/poetryFoundation_JSON_6.txt"
 
 
 from json import JSONDecoder
@@ -73,17 +75,35 @@ def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
 with open(DATA_DIR+JSON_FILE, 'r') as infh:
     cnt=0 
     largest_word_ls=[]
+    Author=''
+    Title=''
+    poet_DOB=''
+    poem_dop=''
     
     for data in json_parse(infh):
         # process object 
         cnt=cnt+1
         print "cnt:", cnt
         for idx, val in enumerate(data):
-            # print idx, val
+
+            #print idx, val
+            if idx==1:
+                #print val['Author'].encode('utf-8')
+                Author = val['Author'].encode('utf-8')
+            elif idx==2:
+                #print val['Title'].encode('utf-8')
+                Title = val['Title'].encode('utf-8')
+            elif idx==3:
+                #print val['poet_DOB'].encode('utf-8')
+                poet_DOB = val['poet_DOB'].encode('utf-8')              
+            elif idx==4:
+                #print val['poem_dop'].encode('utf-8')
+                poem_dop = val['poem_dop'].encode('utf-8')                   
+
             # retrieve the name of associated txt file containing the poem
             if idx==0:
                 txt_fn= DATA_DIR+"txt/"+val+".txt"
-                #print txt_fn
+                
 
                 # LOAD THE POEM HERE
                 #
@@ -125,6 +145,9 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                     for word in nltk.word_tokenize(line.strip(' \t\n\r')):
                         word_no_space =''.join(e for e in word if e.isalnum())
                         word_len=word_len+len(word_no_space)
+
+                        print len(word_no_space), word_no_spacen
+
                         if len(word_no_space)>len(largest_word):
                             #print word_len,len(largest_word)
                             largest_word=word
@@ -153,7 +176,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 
                 # collate
                            
-                if i!=0:
+                if i!=0: 
                     
                     num_of_lines = i- num_empty_lines
                     avg_word_len = word_len/num_of_words
@@ -162,28 +185,35 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                     
                     # only one verse?
                     if tvl==0:
-                        avg_lines_per_verse=i
+                        avg_lines_per_verse=i   
                     else:
                         avg_lines_per_verse = tvl/num_of_verses
                     
-                    # print "filename: ",val
-                    # print "num_of_words =",num_of_words
-                    # print "num_of_lines =",num_of_lines
-                    # print "num_of_verses =",num_of_verses
+            # BASIC FEATURES
+            print "filename: ",txt_fn
+            print 'Author',Author
+            print 'Title',Title
+            print 'poet_DOB',poet_DOB
+            print 'poem_dop',poem_dop
+            
+            print "num_of_words =",num_of_words
+            print "num_of_lines =",num_of_lines
+            print "num_of_verses =",num_of_verses
 
-                    # print "avg_word_len =",avg_word_len
-                    # print "avg_line_len =",avg_line_len
-                    
-                    # vl = ",".join(map(str,verse_lines_list))
-                    # print "verse_lines_list :", vl
+            print "avg_word_len =",avg_word_len
+            print "avg_line_len =",avg_line_len
+            
+            vl = ",".join(map(str,verse_lines_list))
+            print "verse_lines_list :", vl
 
-                    # print "avg_lines_per_verse=",avg_lines_per_verse
-                    
-                    # print "longest_line =", longest_line
-                    # print "largest_word =", largest_word
-                    # print "largest_word =", largest_word_ls
-                    
+            print "avg_lines_per_verse=",avg_lines_per_verse
+            
+            print "longest_line =", longest_line
+            print "largest_word =", largest_word
+            print "largest_word =", largest_word_ls
+            
+                #data_dict["filename"] = val
 
-                pf.close()
+            pf.close()
 
     print '[%s]' % ', '.join(map(str, largest_word_ls ))

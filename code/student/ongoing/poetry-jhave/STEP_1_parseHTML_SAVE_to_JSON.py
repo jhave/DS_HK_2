@@ -39,8 +39,8 @@ DIR = "../../../../data/poetryFoundation/"
 ##############################################################
 
 JSON_PATH = DIR+'json/'   
-HTML_DIR = "html/"
-json_fn = "poetryFoundation_JSON.txt"
+HTML_DIR = "html_6/"
+json_fn = "poetryFoundation_JSON_6.txt"
 
 json_fn_path = JSON_PATH+json_fn
 
@@ -81,6 +81,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                     title_id = soup.find(id="poem-top")
 
                     if (soup.select('span.author span.birthyear')):
+                        #poet_DOB, poet_DOD = clean_life(soup.select('span.author span.birthyear')[0].text)
                         poet_DOB = soup.select('span.author span.birthyear')[0].text
                     else:
                         poet_DOB = "0000"
@@ -165,9 +166,9 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                         categories[category].append(lb.text)
 
                                     # for cat_label in categories[category]:
-                                    #     print cat_label.encode('utf-8')
+                                        # print cat_label.encode('utf-8')
 
-                                    #print categories
+                            print categories
 
 
               
@@ -176,7 +177,20 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                     
                        # print html_file_number.encode('utf-8'), '   Author', poem_author.encode('utf-8').lstrip() ,'   Title' , poem_title.encode('utf-8')
 
-                        json.dump([html_file_number.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB} , {'poem_dop' : poem_dop.encode('utf-8')} ], f_json)
+
+                        # Example Structur
+                        # {
+                        # "id" : 8,
+                        # "Author": "Averill  Curdy",
+                        # "Title": "Probation",
+                        # "poet_DOB": "0000",
+                        # "poem_dop": "2005",
+                        # "labels" : ['hellow', 'world']
+                        # "text": ""
+                        # },
+
+                        # json.dump([html_file_number.encode('utf-8'), { 'Author': poem_author.encode('utf-8').lstrip() } , { 'Title' : poem_title.encode('utf-8') }  , { 'poet_DOB' : poet_DOB} , {'poem_dop' : poem_dop.encode('utf-8')} ], f_json)
+                        json.dump({ 'id': html_file_number.encode('utf-8'), 'Author': poem_author.encode('utf-8').lstrip(), 'Title' : poem_title.encode('utf-8'), 'poet_DOB' : poet_DOB, 'poem_dop' : poem_dop.encode('utf-8'), 'labels' : categories, 'poem' : "" }, f_json)
                       
                         # MOVED f_json.close();
                     
@@ -211,6 +225,11 @@ print html_cnt,"html files processed"
 print txt_cnt,"poems sent to txt files"
 print "json file created at:",json_fn_path
 
+
+def clean_life(str):
+    # change it  to split and clean the data.... get rid of apostrophe elsewhere
+    dob,dod=str,str
+    return dob, dod
 
 """
 ******************************************

@@ -2,6 +2,9 @@
 
 """
 
+MOodified from
+https://github.com/shanbady/NLTK-Boston-Python-Meetup
+
 Tangent#1 : generate a poem use synsets from nltk wordnet to replace all but stopwords
 Goal: generate a set of poems from entire corpus.
 
@@ -43,9 +46,9 @@ import random
 #
 #  IMPORTANT : while testing change this dir
 #
-DATA_DIR  =  "../../../../data/poetryFoundation/txt_6/"
+DATA_DIR  =  "../../../../data/poetryFoundation/txt/"
 #  NOTE: "txt_6" directory contains only 6 files for testing
-GENERATED_DIR  =  "../../../../data/poetryFoundation/generated/tangent1_synset/txt/"
+GENERATED_DIR  =  "../../../../data/poetryFoundation/generated/tangent1_synset/txt"
 
 
 

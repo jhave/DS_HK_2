@@ -125,13 +125,13 @@ for doc in corpus_tfidf:
 # corpus_lsi = lsi_model[corpus]
 
 
-# print "****************"
-# print "Create LDA model"
-# #lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
-# lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
-# corpus_lda = lda_model[corpus]
+print "****************"
+print "Create LDA model"
+#lda_model = LdaModel(corpus_tfidf , id2word=corpus.dictionary, num_topics=topics, passes=passes)
+lda_model = LdaModel(corpus, id2word=corpus.dictionary, num_topics=topics, passes=passes)
+corpus_lda = lda_model[corpus]
 
-# print "Done creating models"
+print "Done creating models"
 
 
 
