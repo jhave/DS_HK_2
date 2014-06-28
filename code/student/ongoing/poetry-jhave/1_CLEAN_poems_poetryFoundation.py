@@ -26,10 +26,42 @@ import json
 
 DIR = "../../../../data/poetryFoundation/"
 
-
-
 import pandas as pd 
 
+# remove annoying characters
+chars = {
+    '\xc2\x82' : ',',        # High code comma
+    '\xc2\x84' : ',,',       # High code double comma
+    '\xc2\x85' : '...',      # Tripple dot
+    '\xc2\x88' : '^',        # High carat
+    '\xc2\x91' : '\x27',     # Forward single quote
+    '\xc2\x92' : '\x27',     # Reverse single quote
+    '\xc2\x93' : '\x22',     # Forward double quote
+    '\xc2\x94' : '\x22',     # Reverse double quote
+    '\xc2\x95' : ' ',
+    '\xc2\x96' : '-',        # High hyphen
+    '\xc2\x97' : '--',       # Double hyphen
+    '\xc2\x99' : ' ',
+    '\xc2\xa0' : ' ',
+    '\xc2\xa6' : '|',        # Split vertical bar
+    '\xc2\xab' : '<<',       # Double less than
+    '\xc2\xbb' : '>>',       # Double greater than
+    '\xc2\xbc' : '1/4',      # one quarter
+    '\xc2\xbd' : '1/2',      # one half
+    '\xc2\xbe' : '3/4',      # three quarters
+    '\xca\xbf' : '\x27',     # c-single quote
+    '\xcc\xa8' : '',         # modifier - under curve
+    '\xcc\xb1' : '' ,        # modifier - under line
+    '\xe2\x80\x99': '\'',   # apostrophe
+    '\xe2\x80\x94': '--'    # em dash
+
+}
+
+
+# USAGE new_str = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, text)
+def replace_chars(match):
+    char = match.group(0)
+    return chars[char]
 
 
 
@@ -40,8 +72,8 @@ import pandas as pd
 ##############################################################
 
 JSON_PATH = DIR+'json/'   
-HTML_DIR = "html_6"
-json_fn = "poetryFoundation_JSON-COMPLETE_6.txt"
+HTML_DIR = "html_60"
+json_fn = "poetryFoundation_JSON-COMPLETE_60.txt"
 
 json_fn_path = JSON_PATH+json_fn
 
@@ -55,11 +87,12 @@ except Exception, e:
 # JSON file
 f_json=open(json_fn_path,'a')
 
+html_cnt=0
+txt_cnt=0
 
 for root, subFolders, files in os.walk(DIR+HTML_DIR):
 
-        html_cnt=0
-        txt_cnt=0
+
 
         for filename in files:
             
@@ -114,7 +147,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         txt_cnt = txt_cnt+1
 
                         poem_title = title_id.find("h1").text
-                        #print 'Title:',poem_title.encode('utf-8')
+                        print 'Title:',poem_title.encode('utf-8')
 
                         # poem_dop == date of publication
                         poem_dop=''
@@ -162,7 +195,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         about = soup.find('div', attrs={'class' : 'about'})
                         # nested within their own section
                         
-                        #print "magazing entries have no labels:",about
+                        #print "entries have no labels:",about
                         if about != None:
                             ps_about = about.find_all('p', attrs={'class' : 'section'})
 
@@ -175,20 +208,28 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                     category = labels.text
                                     #new_label = "category_"+ labels.text   
                                     #print category.encode('utf-8'), ": "
+                                    clean_cat = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, category.encode('utf-8'))
+                                    print "clean_cat:",clean_cat
+                                    if "REGION" in clean_cat:
+                                        clean_cat = "Region"
+                                        print "CLEANED category:", clean_cat
+                                   
 
                                     # create a list within dict for this category
-                                    categories[category] = []
+                                    categories[clean_cat] = []
 
                                     lbs = labels.find_next_siblings()
 
                                     for lb in lbs:
-                                        categories[category].append(lb.text)
+                                        clean_label = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lb.text.encode('utf-8'))
+                                        #print "CLEANED :", clean_label
+                                        categories[clean_cat].append(clean_label)
                                         #new_label= new_label+"_"+lb.text
 
                                     # for cat_label in categories[new_label]:
                                     #     print new_label.encode('utf-8'),":",cat_label.encode('utf-8')
 
-                            #print categories
+                            print "categories:",categories
 
 
               
@@ -214,8 +255,12 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         f=open(txt_fn_path,'w+')
 
                         # REMOVED f.write(poem.text.encode('utf-8').strip())
+                        
+                        clean_poem = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem.text.encode('utf-8'))
+                        
+                        dp = clean_poem
+                        #print dp
 
-                        dp = poem.text.encode('utf-8')
                         f.write(dp)
 
                         f.close();

@@ -13,11 +13,12 @@ http://pandas.pydata.org/pandas-docs/dev/generated/pandas.io.json.read_json.html
 convert the category and labels to numeric values
 
 
-3.
-put into pandas df 
+3. 
+save as csv
 
-4. 
-save as cvs
+####################
+4. NEXT FILE>>>>>>>>
+put into pandas df 
 
 5. 
 classify?
@@ -38,6 +39,7 @@ develop vocaublaries for specific authors
 
 
 from __future__ import division
+from collections import Counter
 
 import nltk, re, pprint
 from nltk import Text
@@ -45,12 +47,18 @@ from nltk import Text
 
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
-JSON_FILE  =  "json/poetryFoundation_JSON-COMPLETE_6.txt"
+JSON_FILE  =  "json/poetryFoundation_JSON-COMPLETE_60.txt"
 
 
 from json import JSONDecoder
 from functools import partial
 from string import whitespace
+
+import csv
+import pandas as pd 
+import numpy as np 
+import matplotlib.pyplot as plt 
+
 
 #
 # utilities
@@ -80,8 +88,9 @@ chars = {
     '\xca\xbf' : '\x27',     # c-single quote
     '\xcc\xa8' : '',         # modifier - under curve
     '\xcc\xb1' : '' ,        # modifier - under line
-    '\xe2\x80\x99': '\'',	# apostrophe
-    '\xe2\x80\x94': '--'	# em dash
+    '\xe2\x80\x99': '\'',   # apostrophe
+    '\xe2\x80\x94': '--',    # em dash
+    '\xe2\x80\x93': '\''    # apostrophe
 
 }
 
@@ -92,27 +101,37 @@ def replace_chars(match):
     return chars[char]
 
 
+#count words (not tokens, and not punctuation)
+nonPunct = re.compile('.*[A-Za-z0-9].*')  # must contain a letter or digit
+def countWords(str):
+    text = ['this', 'is', 'a', 'sentence', '.']
+    filtered = [w for w in str if nonPunct.match(w)]
+    counts = Counter(filtered)
+    return len(counts)
+
+
+# clean up date of birth diverse formatting
 def process_dob(poet_dob):
 
-	birth = '0000'
-	death = '0000'
+    birth = '0000'
+    death = '0000'
 
-	# empty
-	if poet_dob == '':
-		birth = '0000'
-		death = '0000'
+    # empty
+    if poet_dob == '':
+        birth = '0000'
+        death = '0000'
 
-	# form "b. 1964"
-	elif poet_dob.split(".")[0]=='b':
-		birth=poet_dob.split(".")[1]
-		death ='0000'
+    # form "b. 1964"
+    elif poet_dob.split(".")[0]=='b':
+        birth=poet_dob.split(".")[1]
+        death ='0000'
 
-	# form "1964-2022"
-	elif len(poet_dob.split("-"))>1:
-		birth=poet_dob.split("-")[0]
-		death =poet_dob.split("-")[1]
+    # form "1964-2022"
+    elif len(poet_dob.split("-"))>1:
+        birth=poet_dob.split("-")[0]
+        death =poet_dob.split("-")[1]
 
-	return birth,death
+    return birth,death
 
 
 
@@ -133,29 +152,38 @@ def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
 
 
 #
+#  dict for csv file that pandas will read
+#
+
+master_list =[]
+master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word'])
+
+#
 # Load JSON
 #
 
 with open(DATA_DIR+JSON_FILE, 'r') as infh:
+    
     cnt=0 
-    largest_word_ls=[]
-    labels_ls=[]
-    Author=''
-    Title=''
-    poet_DOB=''
-    poem_dop=''
+    no_lines=0
+
+    largest_word_corpus_ls=[]
+
+
     
     # for every poem-file-object
     for data in json_parse(infh):
         # process object 
         cnt=cnt+1
-        print "\n\n\ncnt:", cnt
-
+        #print "cnt:", cnt
+        labels_ls=[]
         # get the data out of json
         for idx, val in enumerate(data):
 
             #print idx, val
             #print data[val.encode('utf-8')].encode('utf-8')
+
+           
 
             if val =='author':
                 author = data[val.encode('utf-8')].encode('utf-8')
@@ -164,20 +192,29 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             elif val == 'poet_DOB':
                 poet_dob = data[val.encode('utf-8')].encode('utf-8')        
             elif val == 'poem_dop':
-                poem_dop = data[val.encode('utf-8')].encode('utf-8')
+                date_of_publication = data[val.encode('utf-8')].encode('utf-8')
             elif val=='id':
                 id=data[val.encode('utf-8')].encode('utf-8')
             elif val=='labels':
-            	categories =data[val.encode('utf-8')]
-            	for k,l in categories.iteritems():
-            		cat_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, k)
-            		for lid,lv in enumerate(l):
-            			labels_ls.append(cat_no_cruft+"_"+lv.encode('utf-8'))
-            		
+                categories =data[val.encode('utf-8')]
+                print "categories:",categories
+                for k,l in categories.iteritems():
+                    cat_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, k)
+                    for lid,lv in enumerate(l):
+                        labels_ls.append(cat_no_cruft+"_"+lv.encode('utf-8'))
+                    
         
         # make dob normal
         date_of_birth, date_of_death = process_dob(poet_dob)
         #print poet_dob,date_of_birth,date_of_death 
+
+        # make date of publication 20 years after birth if there is a birth date
+        if date_of_publication == "" or date_of_publication == '0000':
+            if len(date_of_birth)>0:
+                date_of_publication = int(date_of_birth)+25
+                print "CHANGE date_of_publication:",date_of_publication
+                
+            
 
         #
         # LOAD THE POEM
@@ -210,30 +247,33 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
         num_of_verses = 0
 
         verse_lines_list=[]
+        words_per_line=[]
+
+        poem=""
 
         for line in pf:
 
             i=i+1
             
+            poem=poem+line
             for word in nltk.word_tokenize(line.strip(' \t\n\r')):
                 
                 # get ride of unicode utf-8 cruft
                 word_no_space = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, word)
                 word_no_space = word_no_space.strip(' \t\n\r')
                 # TOO MUCH gets rid of all hyphens, apostrophes etc..::: ''.join(e for e in word_no_space if e.isalnum())
-  				# residual space destruction
+                # residual space destruction
 
                 word_len=word_len+len(word_no_space)
-
-                
-				#print len(word_no_space), word_no_space
+                #print len(word_no_space), word_no_space
 
                 if len(word_no_space)>len(largest_word):
                     #print word_len,len(largest_word)
                     largest_word=word_no_space#.decode('utf-8')
 
             line_len = len(nltk.word_tokenize(line))
-            #print"line_len:",line_len,line
+            words_per_line.append(countWords(line.split()))
+            #print "countWords(str):",countWords(line.split()),"line_len .. len(nltk.word_tokenize(line)):",line_len#,line
             num_of_words = num_of_words + line_len
             if line_len>longest_line:
                 longest_line=line_len
@@ -242,60 +282,159 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             # find verse
             if len(nltk.word_tokenize(line))==0:
                 vb=vb+1
+                #print "~~~~~~~~~~~~~~~~~~~~~~~~~vb=",vb,i,"num_of_verses:",num_of_verses, "prev_verse_i:",prev_verse_i
                 num_empty_lines=num_empty_lines+1
-                if  (i-prev_verse_i-vb) > 1 :      
+                if  (i-prev_verse_i-vb) > 0 :      
                     verse_len=i-prev_verse_i-vb
                     prev_verse_i=i
                     verse_lines_list.append(verse_len)
                     num_of_verses=num_of_verses+1
                     vb=0
                     tvl=tvl + verse_len
-                    #print "verse"
-                     
-            #
 
+                    # #SPECIAL CASE: TITLE before a verse
+                    # print "verse_len:",verse_len,"len(nltk.word_tokenize(line))",len(nltk.word_tokenize(line))
+
+                    # if verse_len==1 and len(nltk.word_tokenize(line))==1:# and num_of_verses>=1:
+                    #   print "TITLE before verse:",len(nltk.word_tokenize(line))
+                    #   num_of_verses=num_of_verses-1
+                    #   del verse_lines_list[-1]
+
+            #print line
+
+
+        #print "~^^^^^special case... last verse does not have line after it: =",i,"prev_verse_i:",prev_verse_i
+        if prev_verse_i<i:
+            num_of_verses=num_of_verses+1
+            verse_len=i-prev_verse_i-vb
+            verse_lines_list.append(verse_len)
+                
         # collate
                    
-        if i!=0: 
+        if i!=0 and num_of_words>0: 
             
             num_of_lines = i- num_empty_lines
             avg_word_len = word_len/num_of_words
             avg_line_len = num_of_words / num_of_lines
-            largest_word_ls.append(largest_word)
+            largest_word_corpus_ls.append(largest_word)
             
             # only one verse?
             if tvl==0:
                 avg_lines_per_verse=i   
             else:
                 avg_lines_per_verse = tvl/num_of_verses
-	            
-	    # BASIC FEATURES
-	    print "id: ",id
-	    print 'author',author
-	    print 'title',title
-	    print 'date_of_birth', date_of_birth
-	    print 'date_of_death', date_of_death
-	    print 'poem_dop',poem_dop
-	    
-	    print "num_of_words =",num_of_words
-	    print "num_of_lines =",num_of_lines
-	    print "num_of_verses =",num_of_verses
+        
+            #        
+            # BASIC FEATURES
+            #
 
-	    print "avg_word_len =",avg_word_len
-	    print "avg_line_len =",avg_line_len
-	    
-	    vl = ",".join(map(str,verse_lines_list))
-	    print "verse_lines_list :", vl
+            print "id: ",id
+            # print 'author:',author
+            # print 'title:',title
+            # print 'date_of_birth:', date_of_birth
+            # print 'date_of_death:', date_of_death
+            # print 'date_of_publication:',date_of_publication
+            
+            # print "num_of_words =",num_of_words
+            # print "num_of_lines =",num_of_lines
+            # print "num_of_verses =",num_of_verses
 
-	    print "avg_lines_per_verse=",avg_lines_per_verse
-	    
-	    print "longest_line =", longest_line
-	    print "largest_word =", largest_word
-	    print "largest_word_ls =", largest_word_ls
-	    print "labels_ls =", labels_ls
+            # print "avg_word_len =",avg_word_len
+            # print "avg_line_len =",avg_line_len
+            
+            # vl = ",".join(map(str,verse_lines_list))
+            # print "verse_lines_list :", vl
+            # print "avg_lines_per_verse=",avg_lines_per_verse
+            
+            # print "longest_line =", longest_line
+           
+            # print "largest_word_corpus_ls =", largest_word_corpus_ls
+            # print "labels_ls =", labels_ls
+            # print "words_per_line =", words_per_line
+            # print "largest_word =", largest_word
+
+            #
+            # PANDAS DATA FRAME
+            # 
+
+            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word])
+
+            # since labels might have been added
+            if len(master_list[0])>len(master_list[-1]):
+                for x in xrange(len(master_list[-1]),len(master_list[0])):
+                    #print x
+                    master_list[-1].append(0)
+            #master_list[-1][len(master_list[-1]):len(master_list[0])]='ahah'
+
+
+            #print "check to see if we need to add new column"
+
+            for l in labels_ls:
+                insert_needed  = True
+                #print "loop through all lables"
+                for m in master_list[0]:
+                    #print "see if label exists"
+                    if l == m:
+                        #print "FOUND label in list already", l.encode('utf-8')
+                        # put a 1 in since it has this label....
+                        #master_list[-1].append(1)# [master_list[0].index(m)]=1
+                        # print "master_list[0].index(l)",master_list[0].index(l)
+                        # #print "master_list[0]",master_list[0]
+                        # print "master_list[-1]",master_list[-1]
+                        # print "len(master_list[-1]):",len(master_list[-1])
+                        if len(master_list[-1])<master_list[0].index(l)+1:
+                            master_list[-1].append(1)
+                        else:
+                            master_list[-1][master_list[0].index(l)]=1
+                        # print "master_list[-1]",master_list[-1]
+                        insert_needed = False
+                        break
+                if insert_needed:
+                    #print "Inserting NEW label: ", l.encode('utf-8')
+                    master_list[0].append(l.encode('utf-8'))
+
+                    #print "Inserting zeroes for each row of new label"
+                    for row in master_list:
+
+                        if master_list.index(row) >0:
+                            row.append(0)
+                        #print len(row)
+                    
+                    master_list[-1][-1]=1
+                    
+
+            # BINARIZE & PUT in labels
+
+        else:
+            print "NO lines detected."
+            no_lines=no_lines+1
+
+
+
+# print '##########'
+# print 'master_list'
+# print '##########'
+
+# for index, item in enumerate(master_list):
+#         print index, item
+
+
+pf.close()
+
+csv_fn="output.csv"
+csv_PATH = DATA_DIR+csv_fn
+with open(csv_PATH, "wb") as f:
+    writer = csv.writer(f)
+    writer.writerows(master_list)
+
+#
+# test panda input 
+#
+
+print cnt,"poems processed"
+print no_lines,"poems with no lines"
+print "CSV file created at:",csv_PATH
+
+df = pd.read_csv(csv_PATH)
+print "DATAFRAME.head():\n",df.head(),"\n"
     
-        #data_dict["filename"] = val
-
-    pf.close()
-
-    print '[%s]' % ', '.join(map(str, largest_word_ls ))
