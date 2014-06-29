@@ -71,9 +71,11 @@ def replace_chars(match):
 # change to 'html/' to scan all files
 ##############################################################
 
+type_of_run="6"
 JSON_PATH = DIR+'json/'   
-HTML_DIR = "html_60"
-json_fn = "poetryFoundation_JSON-COMPLETE_60.txt"
+HTML_DIR = "html_"+type_of_run
+json_fn = "poetryFoundation_JSON_"+type_of_run+".txt"
+txt_fn = type_of_run+"_poetryFoundation_poems.txt"
 
 json_fn_path = JSON_PATH+json_fn
 
@@ -89,6 +91,8 @@ f_json=open(json_fn_path,'a')
 
 html_cnt=0
 txt_cnt=0
+ALL_titles=""
+ALL_poems=""
 
 for root, subFolders, files in os.walk(DIR+HTML_DIR):
 
@@ -146,8 +150,14 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
 
                         txt_cnt = txt_cnt+1
 
+
+
                         poem_title = title_id.find("h1").text
-                        print 'Title:',poem_title.encode('utf-8')
+                        poem_title = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem_title)
+                                        
+                        #print 'Title:',poem_title.encode('utf-8')
+                        ALL_titles=ALL_titles+", "+poem_title
+
 
                         # poem_dop == date of publication
                         poem_dop=''
@@ -174,16 +184,19 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                 elif credits.encode('utf-8').rfind("\xc2")>0:
                                     #print "find cop",credits.encode('utf-8').rfind("\xc2")
                                     poem_dop=credits[(credits.encode('utf-8').rfind("\xc2")+1):(credits.encode('utf-8').rfind("\xc2")+5)]
+
                                 else:
-                                    #print "no dop"
+                                    print "no dop"
                                     #... cld b cheated with poet_DOB+25
                                     poem_dop ='0000'
                       
-                                # catch errors(many old poems have no dop)
-                                if poem_dop.isdigit() == False:
-                                    poem_dop='0000'
-                                elif poem_dop=='':
-                                    poem_dop='0000'
+                        # catch errors(many old poems have no dop)
+                        if poem_dop.isdigit() == False:
+                            #print "catch not digit", poem_dop.encode('utf-8')
+                            poem_dop='0000'
+                        elif poem_dop=='':
+                            #print "catch empty str"
+                            poem_dop='0000'
 
                             #print "dop:",poem_dop.encode('utf-8')
                            
@@ -209,10 +222,15 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                     #new_label = "category_"+ labels.text   
                                     #print category.encode('utf-8'), ": "
                                     clean_cat = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, category.encode('utf-8'))
-                                    print "clean_cat:",clean_cat
+                                    clean_cat.replace(',','')
+                                    clean_cat.rstrip(' ')
+                                    clean_cat.lstrip(' ')
+                                    #print "clean_cat:",clean_cat
                                     if "REGION" in clean_cat:
                                         clean_cat = "Region"
-                                        print "CLEANED category:", clean_cat
+                                        #print "CLEANED category:", clean_cat
+
+                                    #print "clean_cat:",clean_cat
                                    
 
                                     # create a list within dict for this category
@@ -222,25 +240,34 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
 
                                     for lb in lbs:
                                         clean_label = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lb.text.encode('utf-8'))
-                                        #print "CLEANED :", clean_label
+                                        clean_label.replace(',','')
+                                        clean_label.rstrip(' ')
+                                        clean_label.rstrip(',')
+                                        clean_label.lstrip(' ')
+                                        clean_label= "".join([x.strip() for x in clean_label.split(',')])
+                                        #print "clean_label:", clean_label+"*"
                                         categories[clean_cat].append(clean_label)
                                         #new_label= new_label+"_"+lb.text
 
                                     # for cat_label in categories[new_label]:
                                     #     print new_label.encode('utf-8'),":",cat_label.encode('utf-8')
 
-                            print "categories:",categories
+                            #print "categories:",categories
 
 
               
                         # JSON write ALL to json folder
-                      
+                        
+                        #print "dop:", poem_dop.isdigit(),poem_dop.encode('utf-8'), type(poem_dop)
+
                         json.dump({ 'id': html_file_number.encode('utf-8'), 'author': poem_author.encode('utf-8').lstrip(), 'title' : poem_title.encode('utf-8'), 'poet_DOB' : poet_DOB, 'poem_dop' : poem_dop.encode('utf-8'), 'labels':categories, 'poem' : poem.text.encode('utf-8') }, f_json)
                       
                         # 
-                        # PANDAS
+                        # all poem in one 
                         #
 
+                        clean_poem = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem.text.encode('utf-8'))
+                        ALL_poems= ALL_poems+"\n\n**~**\n\n"+clean_poem
 
 
 
@@ -271,4 +298,18 @@ f_json.close();
 print html_cnt,"html files processed"
 print txt_cnt,"poems sent to txt files"
 print "json file created at:",json_fn_path
+#print "\n",ALL_titles.encode('utf-8')
+
+
+txt_fn_path = DIR+txt_fn
+f=open(txt_fn_path,'w+')
+f.write(ALL_poems)
+f.close();
+
+'''
+10565 html files processed
+10561 poems sent to txt files
+json file created at: ../../../../data/poetryFoundation/json/poetryFoundation_JSON-COMPLETE.txt
+[Finished in 1041.9s]
+'''
 

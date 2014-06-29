@@ -16,11 +16,11 @@ convert the category and labels to numeric values
 3. 
 save as csv
 
-####################
-4. NEXT FILE>>>>>>>>
+
+4.
 put into pandas df 
 
-5. 
+5.  NEXT FILE>>>>>>>>
 classify?
 
 6. TODO
@@ -44,10 +44,16 @@ from collections import Counter
 import nltk, re, pprint
 from nltk import Text
 
+############
 
+type_of_run="ALL"
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
-JSON_FILE  =  "json/poetryFoundation_JSON-COMPLETE_60.txt"
+JSON_FILE  =  "json/poetryFoundation_JSON_"+type_of_run+".txt"
+csv_fn="output_"+type_of_run+".csv"
+csv_PATH = DATA_DIR+csv_fn
+
+############
 
 
 from json import JSONDecoder
@@ -122,7 +128,7 @@ def process_dob(poet_dob):
         death = '0000'
 
     # form "b. 1964"
-    elif poet_dob.split(".")[0]=='b':
+    if poet_dob.split(".")[0]=='b' or poet_dob.split(".")[0]=='b.':
         birth=poet_dob.split(".")[1]
         death ='0000'
 
@@ -156,7 +162,7 @@ def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
 #
 
 master_list =[]
-master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word'])
+master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem'])
 
 #
 # Load JSON
@@ -197,7 +203,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                 id=data[val.encode('utf-8')].encode('utf-8')
             elif val=='labels':
                 categories =data[val.encode('utf-8')]
-                print "categories:",categories
+                #print "categories:",categories
                 for k,l in categories.iteritems():
                     cat_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, k)
                     for lid,lv in enumerate(l):
@@ -206,14 +212,16 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
         
         # make dob normal
         date_of_birth, date_of_death = process_dob(poet_dob)
-        #print poet_dob,date_of_birth,date_of_death 
+        #print (date_of_publication == "0000"), date_of_publication,date_of_birth,date_of_death 
 
-        # make date of publication 20 years after birth if there is a birth date
-        if date_of_publication == "" or date_of_publication == '0000':
-            if len(date_of_birth)>0:
-                date_of_publication = int(date_of_birth)+25
-                print "CHANGE date_of_publication:",date_of_publication
-                
+        # DIRTY DATA! ~ clean str.isdigit() types out of this column in step 1
+        # now in 2 make date of publication 20 years after birth if there is a birth date
+        if date_of_publication == '0000':
+            if date_of_birth.isdigit():
+                if int(date_of_birth)>0:
+                    date_of_publication = int(date_of_birth)+25
+                    print "CHANGE date_of_publication:",date_of_publication
+                    
             
 
         #
@@ -357,7 +365,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             # PANDAS DATA FRAME
             # 
 
-            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word])
+            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem])
 
             # since labels might have been added
             if len(master_list[0])>len(master_list[-1]):
@@ -374,6 +382,9 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                 #print "loop through all lables"
                 for m in master_list[0]:
                     #print "see if label exists"
+                    l.rstrip(',')
+                    l.rstrip(' ')
+                    l.lstrip(' ')
                     if l == m:
                         #print "FOUND label in list already", l.encode('utf-8')
                         # put a 1 in since it has this label....
@@ -421,8 +432,6 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 
 pf.close()
 
-csv_fn="output.csv"
-csv_PATH = DATA_DIR+csv_fn
 with open(csv_PATH, "wb") as f:
     writer = csv.writer(f)
     writer.writerows(master_list)
@@ -438,3 +447,67 @@ print "CSV file created at:",csv_PATH
 df = pd.read_csv(csv_PATH)
 print "DATAFRAME.head():\n",df.head(),"\n"
     
+
+
+'''
+
+10561 poems processed
+9 poems with no lines
+CSV file created at: ../../../../data/poetryFoundation/output.csv
+/Users/jhave/anaconda/lib/python2.7/site-packages/pandas/io/parsers.py:1130: DtypeWarning: Columns (5) have mixed types. Specify dtype option on import or set low_memory=False.
+  data = self._reader.read(nrows)
+DATAFRAME.head():
+      id              author                                     title  \
+0     10      Averill  Curdy                                 Probation   
+1  11053    Margaret  Walker                             For My People   
+2  11099  Janet Loxley Lewis                          Carmel Highlands   
+3  11288       Mary  Barnard  Remarks on Poetry and the Physical World   
+4  11312       Dylan  Thomas   When All My Five and Country Senses See   
+
+   date_of_birth  date_of_death date_of_publication  num_of_words  \
+0              0              0                2005           188   
+1           1915           1998                1937           527   
+2           1899           1998                1938           110   
+3           1909           2001                1938           108   
+4           1914           1953                1938           127   
+
+   num_of_lines  num_of_verses  avg_word_len      ...       \
+0            35              7      3.968085      ...        
+1            57             10      4.548387      ...        
+2            14              2      4.572727      ...        
+3            15              3      4.175926      ...        
+4            14              2      4.031496      ...        
+
+   Poetic Terms_Pantoum  Poetic Terms_Pantoum,   Region_Mexico  \
+0                     0                       0              0   
+1                     0                       0              0   
+2                     0                       0              0   
+3                     0                       0              0   
+4                     0                       0              0   
+
+  Poetic Terms_Quatrain Poetic Terms_Quatrain,  Poetic Terms_Aubade,   \
+0                     0                       0                     0   
+1                     0                       0                     0   
+2                     0                       0                     0   
+3                     0                       0                     0   
+4                     0                       0                     0   
+
+   Poetic Terms_Tercet  Poetic Terms_Ghazal,   Poetic Terms_Nursery Rhymes,   \
+0                    0                      0                              0   
+1                    0                      0                              0   
+2                    0                      0                              0   
+3                    0                      0                              0   
+4                    0                      0                              0   
+
+   Region_Russia  
+0              0  
+1              0  
+2              0  
+3              0  
+4              0  
+
+[5 rows x 278 columns] 
+
+[Finished in 495.0s]
+'''
+
