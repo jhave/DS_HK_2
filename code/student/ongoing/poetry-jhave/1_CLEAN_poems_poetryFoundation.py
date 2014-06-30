@@ -71,7 +71,7 @@ def replace_chars(match):
 # change to 'html/' to scan all files
 ##############################################################
 
-type_of_run="6"
+type_of_run="60"
 JSON_PATH = DIR+'json/'   
 HTML_DIR = "html_"+type_of_run
 json_fn = "poetryFoundation_JSON_"+type_of_run+".txt"

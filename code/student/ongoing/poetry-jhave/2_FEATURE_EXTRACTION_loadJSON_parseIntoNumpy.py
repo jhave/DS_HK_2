@@ -48,7 +48,7 @@ from nltk.tokenize import WhitespaceTokenizer
 
 ############
 
-type_of_run="6"
+type_of_run="ALL"
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
 JSON_FILE  =  "json/poetryFoundation_JSON_"+type_of_run+".txt"
@@ -348,7 +348,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             poem_stress_list.append(stress)
             poem_stress_list_no_punct.append(stress_no_punct)
 
-            print len(line),"~"+stress+"~",stress_no_punct,line
+            #print len(line),"~"+stress+"~",stress_no_punct,line
 
 
             #
