@@ -43,10 +43,12 @@ from collections import Counter
 
 import nltk, re, pprint
 from nltk import Text
+from nltk.corpus import cmudict
+from nltk.tokenize import WhitespaceTokenizer
 
 ############
 
-type_of_run="ALL"
+type_of_run="6"
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
 JSON_FILE  =  "json/poetryFoundation_JSON_"+type_of_run+".txt"
@@ -116,6 +118,42 @@ def countWords(str):
     return len(counts)
 
 
+# STRIP PUNCTUATION BUT KEEP IT TO BE ADDED LATER
+def strip_punctuation_stressed(word):
+    # define punctuations
+    punctuations = '!()-[]{};:"\,<>./?@#$%^&*_~'
+    my_str = word
+
+    # remove punctuations from the string
+    no_punct = ""
+    punct=""
+    for char in my_str:
+        if char not in punctuations:
+            ##print "CHAR:", char
+            no_punct = no_punct + char
+        else:
+            punct = punct+char
+
+    ##print "word:",no_punct,"punct:", punct
+    return {'word':no_punct,'punct':punct}
+
+
+
+# convert the cmudict prondict into just numbers
+def strip_letters(ls):
+    #print "strip_letters"
+    nm = ''
+    for ws in ls:
+        #print "ws",ws
+        for ch in list(ws):
+            #print "ch",ch
+            if ch.isdigit():
+                nm=nm+ch
+                #print "ad to nm",nm, type(nm)
+    return nm
+
+
+
 # clean up date of birth diverse formatting
 def process_dob(poet_dob):
 
@@ -162,7 +200,7 @@ def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
 #
 
 master_list =[]
-master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem'])
+master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem','poem_stress_list','poem_stress_list_no_punct'])
 
 #
 # Load JSON
@@ -174,8 +212,8 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
     no_lines=0
 
     largest_word_corpus_ls=[]
-
-
+    prondict = cmudict.dict()
+    
     
     # for every poem-file-object
     for data in json_parse(infh):
@@ -189,7 +227,6 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             #print idx, val
             #print data[val.encode('utf-8')].encode('utf-8')
 
-           
 
             if val =='author':
                 author = data[val.encode('utf-8')].encode('utf-8')
@@ -259,9 +296,14 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 
         poem=""
 
+        poem_stress_list=[]
+        poem_stress_list_no_punct=[]
+
         for line in pf:
 
             i=i+1
+            stress=''
+            stress_no_punct=''
             
             poem=poem+line
             for word in nltk.word_tokenize(line.strip(' \t\n\r')):
@@ -278,6 +320,42 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                 if len(word_no_space)>len(largest_word):
                     #print word_len,len(largest_word)
                     largest_word=word_no_space#.decode('utf-8')
+
+
+
+            # 
+            # FIND METRE (begin stress mess)
+            # 
+
+            for word in WhitespaceTokenizer().tokenize(line.strip(' \t\n\r')):    
+
+
+                word_punct = strip_punctuation_stressed(word.lower())
+                word = word_punct['word']
+                punct = word_punct['punct']
+
+                if word not in prondict:
+                    #print "NOT in prondict:",word
+                    stress= stress+"*"+word+"*"
+                else:
+                    #print word,stress,prondict[word][0]
+                    stress = stress+strip_letters(prondict[word][0])
+                    stress_no_punct=stress_no_punct+strip_letters(prondict[word][0])
+
+                if len(punct)>0:
+                    stress= stress+"*"+punct+"*"
+
+            poem_stress_list.append(stress)
+            poem_stress_list_no_punct.append(stress_no_punct)
+
+            print len(line),"~"+stress+"~",stress_no_punct,line
+
+
+            #
+            #   end of stress
+            #
+
+
 
             line_len = len(nltk.word_tokenize(line))
             words_per_line.append(countWords(line.split()))
@@ -308,7 +386,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                     #   num_of_verses=num_of_verses-1
                     #   del verse_lines_list[-1]
 
-            #print line
+
 
 
         #print "~^^^^^special case... last verse does not have line after it: =",i,"prev_verse_i:",prev_verse_i
@@ -365,7 +443,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             # PANDAS DATA FRAME
             # 
 
-            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem])
+            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem,poem_stress_list,poem_stress_list_no_punct])
 
             # since labels might have been added
             if len(master_list[0])>len(master_list[-1]):
