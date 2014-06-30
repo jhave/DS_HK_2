@@ -113,8 +113,8 @@ def ex1(dat_file=DATA_DIR + 'ml-1m-ratings.dat',
     print 'MAE=%s' % mae.compute()
 
 if __name__ == '__main__':
-    quickstart()
-    # ex1()
+    # quickstart()
+    ex1()
 
 # Example taken from: http://ocelma.net/software/python-recsys/build/html/quickstart.html
 
