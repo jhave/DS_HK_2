@@ -221,6 +221,10 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
         cnt=cnt+1
         #print "cnt:", cnt
         labels_ls=[]
+
+        author='UNKNOWN'
+        title='UNKNOWN'
+
         # get the data out of json
         for idx, val in enumerate(data):
 
@@ -228,8 +232,10 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             #print data[val.encode('utf-8')].encode('utf-8')
 
 
+
             if val =='author':
                 author = data[val.encode('utf-8')].encode('utf-8')
+                print author
             elif val == 'title':
                 title = data[val.encode('utf-8')].encode('utf-8')
             elif val == 'poet_DOB':
@@ -243,10 +249,12 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                 #print "categories:",categories
                 for k,l in categories.iteritems():
                     cat_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, k)
-                    for lid,lv in enumerate(l):
-                        labels_ls.append(cat_no_cruft+"_"+lv.encode('utf-8'))
-                    
-        
+                    if cat_no_cruft != 'Poet':
+                        for lid,lv in enumerate(l):
+                            lv_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lv)
+                            labels_ls.append(cat_no_cruft+"_"+lv_no_cruft)#.encode('utf-8'))
+                        
+            
         # make dob normal
         date_of_birth, date_of_death = process_dob(poet_dob)
         #print (date_of_publication == "0000"), date_of_publication,date_of_birth,date_of_death 
@@ -523,8 +531,8 @@ print no_lines,"poems with no lines"
 print "CSV file created at:",csv_PATH
 
 df = pd.read_csv(csv_PATH)
-print "DATAFRAME.head():\n",df.head(),"\n"
-    
+print "\nDATAFRAME.head():\n",df.head(),"\n"
+print "\nDATAFRAME.tail():\n",df.tail(),"\n"    
 
 
 '''

@@ -71,7 +71,7 @@ def replace_chars(match):
 # change to 'html/' to scan all files
 ##############################################################
 
-type_of_run="60"
+type_of_run="ALL"  # "60" "ALL"
 JSON_PATH = DIR+'json/'   
 HTML_DIR = "html_"+type_of_run
 json_fn = "poetryFoundation_JSON_"+type_of_run+".txt"
@@ -104,7 +104,11 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
             html_file_number = filename.split(".")[0]
             print html_file_number
             html_cnt=html_cnt+1
-            
+
+            poem_author = 'UNKNOWN'
+            poem_title = 'UNKNOWN'
+            poet_DOB = 'UNKNOWN'
+            poem_dop = 'UNKNOWN'
 
             # HELP!!! get rid trouble characters NOT WORKING
             # UnicodeDecodeError: 'utf8' codec can't decode byte 0x80 in position 3131: invalid start byte
@@ -129,7 +133,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                 
                 if pa:
                     poem_author = soup.select('span.author a')[0].text
-                    #print 'Author:',poem_author.encode('utf-8')
+                    
                     title_id = soup.find(id="poem-top")
 
                     if (soup.select('span.author span.birthyear')):
@@ -149,8 +153,6 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                     if title_id:
 
                         txt_cnt = txt_cnt+1
-
-
 
                         poem_title = title_id.find("h1").text
                         poem_title = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem_title)
@@ -215,47 +217,58 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                             for slug in ps_about:
                                 labels = slug.find('span', attrs={'class' : 'slug'})
 
-                                if labels.text  != 'Poet':
+                                #if labels.text  != 'Poet':
                                     
-                                    #labels.text.replace(u'\u2019', "'")
-                                    category = labels.text
-                                    #new_label = "category_"+ labels.text   
-                                    #print category.encode('utf-8'), ": "
-                                    clean_cat = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, category.encode('utf-8'))
-                                    clean_cat.replace(',','')
-                                    clean_cat.rstrip(' ')
-                                    clean_cat.lstrip(' ')
-                                    #print "clean_cat:",clean_cat
-                                    if "REGION" in clean_cat:
-                                        clean_cat = "Region"
-                                        #print "CLEANED category:", clean_cat
+                                #labels.text.replace(u'\u2019', "'")
+                                category = labels.text
+                                #new_label = "category_"+ labels.text   
+                                #print category.encode('utf-8'), ": "
+                                clean_cat = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, category.encode('utf-8'))
+                                clean_cat.replace(',','')
+                                clean_cat.rstrip(' ')
+                                clean_cat.lstrip(' ')
+                                #print "clean_cat:",clean_cat
+                                if "REGION" in clean_cat:
+                                    clean_cat = "Region"
+                                    #print "CLEANED category:", clean_cat
 
-                                    #print "clean_cat:",clean_cat
-                                   
+                                #print "clean_cat:",clean_cat
+                               
 
-                                    # create a list within dict for this category
-                                    categories[clean_cat] = []
+                                # create a list within dict for this category
+                                categories[clean_cat] = []
 
-                                    lbs = labels.find_next_siblings()
+                                lbs = labels.find_next_siblings()
 
-                                    for lb in lbs:
-                                        clean_label = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lb.text.encode('utf-8'))
-                                        clean_label.replace(',','')
-                                        clean_label.rstrip(' ')
-                                        clean_label.rstrip(',')
-                                        clean_label.lstrip(' ')
-                                        clean_label= "".join([x.strip() for x in clean_label.split(',')])
-                                        #print "clean_label:", clean_label+"*"
-                                        categories[clean_cat].append(clean_label)
-                                        #new_label= new_label+"_"+lb.text
+                                for lb in lbs:
+                                    clean_label = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lb.text.encode('utf-8'))
+                                    clean_label.replace(',','')
+                                    clean_label.rstrip(' ')
+                                    clean_label.rstrip(',')
+                                    clean_label.lstrip(' ')
+                                    clean_label= "".join([x.strip() for x in clean_label.split(',')])
+                                    #print "clean_label:", clean_label+"*"
+                                    categories[clean_cat].append(clean_label)
+                                    #new_label= new_label+"_"+lb.text
 
-                                    # for cat_label in categories[new_label]:
-                                    #     print new_label.encode('utf-8'),":",cat_label.encode('utf-8')
+                                # for cat_label in categories[new_label]:
+                                #     print new_label.encode('utf-8'),":",cat_label.encode('utf-8')
 
                             #print "categories:",categories
 
+                        #
+                        #   Catch 'Ali Pechman' error: where sidebar author was being attributed as author of poem
+                        #    
+                        #print categories['Poet'][0]
+                        #print 'Author:',poem_author.encode('utf-8')
+                        if 'Poet' in categories:
+                            if categories['Poet'][0].lstrip() != poem_author.lstrip():
+                                #print "CHANGE author from ",(poem_author.encode('utf-8','ignore')).decode('unicode-escape'),"to",(categories['Poet'][0].encode('utf-8','ignore')).decode('unicode-escape')
+                                poem_author = categories['Poet'][0].decode('unicode-escape')
+                                
 
-              
+                        #print 'Title:',poem_title.encode('utf-8')
+                        #print 'dop:',poem_dop
                         # JSON write ALL to json folder
                         
                         #print "dop:", poem_dop.isdigit(),poem_dop.encode('utf-8'), type(poem_dop)
