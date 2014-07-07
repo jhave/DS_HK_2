@@ -12,11 +12,19 @@ Parse the html using BeautifulSoup to extract features and labels
 Write in JSON format to a single txt file for later import and incorporation into pipeline
 
 """
+from __future__ import division
+from collections import Counter
+
+import nltk, re, pprint
+from nltk import Text
+from nltk.corpus import cmudict
+from nltk.tokenize import WhitespaceTokenizer
 
 import re
 
 import os
 import sys
+import collections
 
 
 # for parsing html
@@ -28,11 +36,28 @@ import pandas as pd
 
 
 ##############################################################
-#
+#\
+type_of_run="6"  # "60" "ALL"
+DIR = "../../../../data/poetry/lyrics/"
 DATA_DIR = "../../../../data/poetry/lyrics/en_txt/"
-WRITE_DIR = "../../../../data/poetry/lyrics/analysis/"
-
+WRITE_DIR = "../../../../data/poetry/lyrics/en_seperate_songs/"
 txt_fn="lyrics"
+
+JSON_PATH = DIR+'json/'   
+json_fn = "poetryFoundation_JSON_"+type_of_run+".txt"
+json_fn_path = JSON_PATH+json_fn
+
+try:
+    if os.path.isfile(json_fn_path):
+            os.unlink(json_fn_path)
+except Exception, e:
+        print e
+
+
+# JSON file
+f_json=open(json_fn_path,'a')
+
+
 
 cnt=0
 for root, subFolders, files in os.walk(DATA_DIR):
@@ -61,57 +86,77 @@ for root, subFolders, files in os.walk(DATA_DIR):
 
                 songs = raw.split(artistName.upper())
 
-                if artistName=="U2":
+                #if artistName=="U2":
 
-                    print "\n\n************\nartistName.upper(): '"+artistName.upper()+"'     filename:",filename,"len(songs)",len(songs),"\n************\n"
+                print "\n\n************\nartistName.upper(): '"+artistName.upper()+"'     filename:",filename,"len(songs)",len(songs),"\n************\n"
 
-                    song_dict=[]
+                song_list=[]
 
-                    cnt =0
+                cnt =0
 
-                    for song in songs:
-                        lines = song.split("\n")
-                        title = lines[1].title().strip(' \t\n\r').rstrip().lstrip()
-                        title = ' '.join(title.split())
-
-
-                        if len(title)>1: 
-                            #print cnt,"title: '"+title+"'"
-                            song_dict.append({'title':title,'song':"\n".join(lines[2:]),'len':len("\n".join(lines[2:])) })
-                            cnt+=1
-
-                    print len(song_dict)
-
-                    # # remove duplicate versions of same song by taking only longest
-                    # for sd in song_dict:
-                    #     for sd2 in song_dict:
-                    #         if sd['title'] == sd2['title'] and song_dict.index(sd) != song_dict.index(sd2):#.split('(')[0]: 
-                    #             print song_dict.index(sd),song_dict.index(sd2),"DUPLICATE:",sd['title'],"    &    ",sd2['title']
-                    #             if sd['len']>len(sd2['song']):
+                for song in songs:
+                    lines = song.split("\n")
+                    title = lines[1].title().strip(' \t\n\r').rstrip().lstrip()
+                    title = ' '.join(title.split())
 
 
-                        #print "title:",sd['title'],"len(sd['song']):",len(sd['song'])#,"\n",sd['song']
+                    if len(title)>1: 
+                        #print cnt,"title: '"+title+"'"
+                        id = artistName+'_'+title
+                        song_list.append({ 'title':title, 'author':artistName, 'poem':"\n".join(lines[2:]),'len':len("\n".join(lines[2:])) })
+                        cnt+=1
 
-                    
+                print len(song_list)
+
+                # # remove duplicate versions of same song by taking only longest
+                data = collections.defaultdict(list)
+
+                for i in song_list:
+                    # if  len(i['title'].split("("))>1:
+                    #     i['title']
+                    data[i['title']].append(i['len'])
+                    #data[i['title']].append(i['song'])
+                
+                output = [{'title': i, 'len': max(j)} for i,j in data.items()]
+
+                song_list_pruned=[]
+                print len(output)
+                for o in output:
+                    #print output.index(o),o['title'],o['len']
+                    for sd in song_list:
+                        if sd['title']==o['title']:
+                            if sd['len']==o['len']:
+                                #print "INCLUDE"
+                                # prune the duplicate entry
+                                song_list_pruned.append({'title':sd['title'],'poem': sd['poem'] , 'author':sd['author'], 'len': sd['len']  })
+
+
+
+
+                    # SAVE EACH SONG AS TXT FILE
+                    # print len(song_list_pruned)
+                    # for slp in song_list_pruned:
+                    #     txt_fn_path =WRITE_DIR+slp['author']+'_'+slp['title']
+                    #     f=open(txt_fn_path,'w+')
+                    #     clean_poem = slp['poem'].encode('utf-8')
+                    #     dp = clean_poem
+                    #     f.write(dp)
+                    #     f.close();
+                    #     print slp['id'], slp['title'],slp['author'],slp['poem'].split("\n")[1]
+
+                    # write a text file
+
+                    # JSON dump returns out of range ascii error 
+                    for slp in song_list_pruned:
+                        json.dump(slp, f_json)
+                      
+
+
+
+            
+f_json.close();    
 
 
 
 
 
-                # if (soup.pre is None) or (len(soup.pre) == 0):
-                #     print "None"
-                # else:
-                #     htm = url
-                #     htm +=soup.pre.text
-                #     txt_fn_path = WRITE_DIR+filename
-                #     print "WRITE: ",txt_fn_path
-
-
-                #     if not os.path.exists(WRITE_DIR):
-                #         os.makedirs(WRITE_DIR)
-                   
-                #     f=open(txt_fn_path,'w+')
-                #     f.write(htm.encode('utf-8'))
-                #     f.close();
-
-        
