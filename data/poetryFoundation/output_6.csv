@@ -1,0 +1,211 @@
+id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem,poem_stress_list,poem_stress_list_no_punct
+2058,Sara  Teasdale,Old Love and New,1884,1933,1914,81,16,4,3.3703703703703702,5.0625,3.0,7,"[0, 6, 4, 4, 3, 0, 4, 5, 3, 3, 0, 6, 5, 6, 3, 0, 3, 5, 6, 3]",reproachfully,"
+In my heart the old love   
+   Struggled with the new,   
+It was ghostly waking   
+   All night through.    
+
+Dear things, kind things   
+   That my old love said,   
+Ranged themselves reproachfully   
+   Round my bed.    
+
+But I could not heed them,   
+   For I seemed to see   
+Dark eyes of my new love   
+   Fixed on me.    
+
+Old love, old love,   
+   How can I be true?   
+Shall I be faithless to myself   
+   Or to you?
+","['', '011011', '10101*,*', '111010', '111*.*', '', '11*,*11', '11111*,*', '101*reproachfully*', '111*.*', '', '111111*,*', '11111', '111111', '111*.*', '', '11*,*11*,*', '11111*?*', '111*faithless*121', '111*?*']","['', '011011', '10101', '111010', '111', '', '1111', '11111', '101', '111', '', '111111', '11111', '111111', '111', '', '1111', '11111', '111121', '111']"
+2059,Sara  Teasdale,Over the Roofs,1884,1933,1914,293,42,13,3.3890784982935154,6.976190476190476,2.923076923076923,10,"[0, 1, 0, 8, 5, 7, 7, 8, 0, 7, 7, 8, 6, 5, 0, 0, 1, 0, 8, 9, 7, 7, 0, 6, 7, 6, 7, 0, 0, 1, 0, 7, 7, 6, 6, 0, 7, 7, 8, 6, 0, 0, 1, 0, 7, 6, 5, 5, 0, 6, 6, 8, 4, 0, 7, 6, 8, 5]",street-pianos,"
+I 
+
+Oh chimes set high on the sunny tower   
+    Ring on, ring on unendingly, 
+Make all the hours a single hour,   
+For when the dusk begins to flower,   
+    The man I love will come to me! ... 
+
+But no, go slowly as you will, 
+    I should not bid you hasten so,   
+For while I wait for love to come,   
+Some other girl is standing dumb, 
+    Fearing her love will go. 
+
+
+       II 
+
+Oh white steam over the roofs, blow high!   
+    Oh chimes in the tower ring clear and free!   
+Oh sun awake in the covered sky, 
+    For the man I love, loves me! ... 
+
+Oh drifting steam disperse and die, 
+    Oh tower stand shrouded toward the south,-- 
+Fate heard afar my happy cry, 
+    And laid her finger on my mouth. 
+
+
+       III 
+
+The dusk was blue with blowing mist,   
+    The lights were spangles in a veil,   
+And from the clamor far below 
+    Floated faint music like a wail. 
+
+It voiced what I shall never speak, 
+    My heart was breaking all night long, 
+But when the dawn was hard and gray,   
+    My tears distilled into a song. 
+
+
+       IV 
+
+I said, “I have shut my heart   
+    As one shuts an open door, 
+That Love may starve therein   
+    And trouble me no more.” 
+
+But over the roofs there came 
+    The wet new wind of May, 
+And a tune blew up from the curb 
+    Where the street-pianos play. 
+
+My room was white with the sun   
+    And Love cried out to me, 
+“I am strong, I will break your heart   
+    Unless you set me free.”
+","['', '1', '', '1111101010', '11*,*11*unendingly**,*', '1101001010*,*', '110101110*,*', '01111111*!****...*', '', '11*,*110111*,*', '11111101*,*', '11111111*,*', '11011101*,*', '100111*.*', '', '', '*ii*', '', '1111001*,*11*!*', '1100101101*!*', '110100101*,*', '10111*,*11*!****...*', '', '11010101*,*', '1101100101*,--*', '11011101*,*', '01010111*.*', '', '', '*iii*', '', '01111101*,*', '010*spangles*001*,*', '01010101', '10110101*.*', '', '11111101*,*', '11110111*,*', '11011101*,*', '11010101*.*', '', '', '*iv*', '', '11*,**\xe2\x80\x9ci*1111', '1111101*,*', '111101', '01011*more\xe2\x80\x9d**.*', '', '1100111', '011111*,*', '00111101', '10*streetpianos**-*1*.*', '', '1111101', '011111*,*', '*\xe2\x80\x9ci*11*,*11111', '01111*free\xe2\x80\x9d**.*']","['', '1', '', '1111101010', '1111', '1101001010', '110101110', '01111111', '', '11110111', '11111101', '11111111', '11011101', '100111', '', '', '', '', '111100111', '1100101101', '110100101', '1011111', '', '11010101', '1101100101', '11011101', '01010111', '', '', '', '', '01111101', '010001', '01010101', '10110101', '', '11111101', '11110111', '11011101', '11010101', '', '', '', '', '111111', '1111101', '111101', '01011', '', '1100111', '011111', '00111101', '101', '', '1111101', '011111', '1111111', '01111']"
+2060,Sara  Teasdale,Debt,1884,1933,1914,54,8,2,3.0185185185185186,6.75,2.0,8,"[0, 6, 6, 6, 6, 0, 6, 6, 6, 5]",through,"
+What do I owe to you            
+   Who loved me deep and long? 
+You never gave my spirit wings   
+   Nor gave my heart a song.    
+
+But oh, to him I loved,            
+   Who loved me not at all, 
+I owe the little open gate   
+   That led through heaven's wall.
+","['', '111111', '111101*?*', '11011101', '111101*.*', '', '11*,*1111*,*', '111111*,*', '11010101', '111101*.*']","['', '111111', '111101', '11011101', '111101', '', '111111', '111111', '11010101', '111101']"
+2061,Sara  Teasdale,September Midnight,1884,1933,1914,143,16,4,3.888111888111888,8.9375,3.0,13,"[0, 7, 9, 9, 2, 0, 9, 9, 7, 3, 0, 8, 10, 10, 3, 0, 7, 9, 12, 4]","benediction,","
+Lyric night of the lingering Indian Summer,
+Shadowy fields that are scentless but full of singing, 
+Never a bird, but the passionless chant of insects, 
+       Ceaseless, insistent.   
+
+The grasshopper's horn, and far-off, high in the maples, 
+The wheel of a locust leisurely grinding the silence 
+Under a moon waning and worn, broken, 
+       Tired with summer.    
+
+Let me remember you, voices of little insects,
+Weeds in the moonlight, fields that are tangled with asters, 
+Let me remember, soon will the winter be on us,
+       Snow-hushed and heavy.   
+
+Over my soul murmur your mute benediction,
+While I gaze, O fields that rest after harvest,
+As those who part look long in the eyes they lean to, 
+       Lest they forget them.
+","['', '1011010010010*,*', '100111*scentless*11110*,*', '1001*,*10*passionless*1112*,*', '10*,*010*.*', '', ""0*grasshopper's*1*,*0*faroff**-,*10010*,*"", '01101010010010', '10011001*,*10*,*', '10110*.*', '', '110101*,*1011012*,*', '10012*,*11110110*,*', '11010*,*11010111*,*', '*snowhushed**-*010*.*', '', '101110112010*,*', '111*,*11111010*,*', '111111001111*,*', '11011*.*']","['', '1011010010010', '10011111110', '1001101112', '10010', '', '01010010', '01101010010010', '1001100110', '10110', '', '1101011011012', '1001211110110', '1101011010111', '010', '', '101110112010', '11111111010', '111111001111', '11011']"
+2130,Ezra  Pound,Ladies,1885,1972,1914,147,24,9,3.8503401360544216,6.125,2.0,13,"[0, 1, 0, 10, 5, 0, 8, 6, 0, 2, 0, 7, 8, 10, 7, 0, 2, 0, 3, 7, 4, 3, 4, 3, 0, 1, 0, 3, 2, 1, 6, 10, 8]","uncertainty,","
+Agathas 
+
+Four and forty lovers had Agathas in the old days,
+All of whom she refused;
+
+And now she turns to me seeking love,
+And her hair also is turning.
+
+Young Lady 
+
+I have fed your lar with poppies,
+I have adored you for three full years;
+And now you grumble because your dress does not fit
+And because I happen to say so.
+
+Lesbia Illa 
+
+Memnon, Memnon, that lady
+Who used to walk about amongst us
+With such gracious uncertainty,
+Is now wedded
+To a British householder.
+Lugete, Veneres! Lugete, Cupidinesque! 
+
+Passing 
+
+Flawless as Aphrodite,
+Thoroughly beautiful,
+Brainless,
+The faint odor of your patchouli,
+Faint, almost, as the lines of cruelty about your chin,
+Assails me, and concerns me almost as little.
+","['', '*agathas*', '', '1010101*agathas*0011*,*', '111101*;*', '', '011111101*,*', '00110110*.*', '', '110', '', '11111110*,*', '110111111*;*', '011100111111', '001110111*.*', '', '*lesbia**illa*', '', '12*,*12*,*110', '111101011', '11100100*,*', '1110', '1010120*.*', '*lugete**,**veneres**!**lugete**,**cupidinesque**!*', '', '10', '', '1012010*,*', '100100*,*', '10*,*', '011011*patchouli**,*', '1*,*12*,*1011100111*,*', '011*,*001112110*.*']","['', '', '', '10101010011', '111101', '', '011111101', '00110110', '', '110', '', '11111110', '110111111', '011100111111', '001110111', '', '', '', '1212110', '111101011', '11100100', '1110', '1010120', '', '', '10', '', '1012010', '100100', '10', '011011', '1121011100111', '011001112110']"
+2189,Wallace  Stevens,Phases,1879,1955,1914,228,48,12,3.6008771929824563,4.75,3.75,8,"[0, 1, 6, 4, 4, 4, 0, 6, 5, 4, 4, 0, 5, 5, 5, 2, 0, 0, 1, 7, 4, 3, 6, 2, 4, 0, 0, 1, 5, 4, 5, 0, 4, 1, 4, 0, 3, 5, 0, 4, 5, 0, 4, 2, 3, 3, 0, 0, 1, 3, 4, 5, 2, 3, 0, 3, 3, 2, 5, 0, 3, 2, 5]",intermitted,"
+I. 
+There's a little square in Paris, 
+Waiting until we pass. 
+They sit idly there, 
+They sip the glass. 
+
+There's a cab-horse at the corner, 
+There's rain. The season grieves. 
+It was silver once, 
+And green with leaves. 
+
+There's a parrot in a window, 
+Will see us on parade, 
+Hear the loud drums roll-- 
+And serenade. 
+
+
+                           II. 
+This was the salty taste of glory, 
+That it was not 
+Like Agamemnon's story. 
+Only, an eyeball in the mud, 
+And Hopkins, 
+Flat and pale and gory! 
+
+
+                           III. 
+But the bugles, in the night, 
+Were wings that bore 
+To where our comfort was; 
+
+Arabesques of candle beams, 
+Winding 
+Through our heavy dreams; 
+
+Winds that blew 
+Where the bending iris grew; 
+
+Birds of intermitted bliss, 
+Singing in the night's abyss; 
+
+Vines with yellow fruit, 
+That fell 
+Along the walls 
+That bordered Hell. 
+
+
+                           IV. 
+Death's nobility again 
+Beautified the simplest men. 
+Fallen Winkle felt the pride 
+Of Agamemnon 
+When he died. 
+
+What could London's 
+Work and waste 
+Give him-- 
+To that salty, sacrificial taste? 
+
+What could London's 
+Sorrow bring-- 
+To that short, triumphant sting?
+","['', '1*.*', '10101010*,*', '100111*.*', '11101*,*', '1101*.*', '', '10*cabhorse**-*1010*,*', '11*.*0101*.*', '11101*,*', '0111*.*', '', '10100010*,*', '111101*,*', '10111*--*', '0201*.*', '', '', '*ii**.*', '110101110*,*', '1111', '1201210*.*', '10*,*112001*,*', '010*,*', '101010*!*', '', '', '*iii**.*', '1010*,*001*,*', '0111', '1110101*;*', '', '*arabesques*1101*,*', '10', '110101*;*', '', '111', '1010101*;*', '', '11*intermitted*1*,*', '1000101*;*', '', '11101*,*', '11', '0101', '1101*.*', '', '', '*iv**.*', '1010001', '*beautified*0101*.*', '1010101', '12012', '111*.*', '', '1110', '101', '11*--*', '1110*,*20101*?*', '', '1110', '101*--*', '111*,*0101*?*']","['', '1', '10101010', '100111', '11101', '1101', '', '101010', '110101', '11101', '0111', '', '10100010', '111101', '10111', '0201', '', '', '', '110101110', '1111', '1201210', '10112001', '010', '101010', '', '', '', '1010001', '0111', '1110101', '', '1101', '10', '110101', '', '111', '1010101', '', '111', '1000101', '', '11101', '11', '0101', '1101', '', '', '', '1010001', '0101', '1010101', '12012', '111', '', '1110', '101', '11', '111020101', '', '1110', '101', '1110101']"
