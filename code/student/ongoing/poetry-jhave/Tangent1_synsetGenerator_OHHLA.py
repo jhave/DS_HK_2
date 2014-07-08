@@ -44,6 +44,8 @@ import sys
 import random
 import string
 
+import import_utilities
+
 # HOW_TO put all utilities into subdirectory and call them in: sys.path.insert(0,'/utilities')
 #import profanityFilter_ARR.py
 curses = [
@@ -251,6 +253,7 @@ curses = [
 'neonazi',
 'nig nog',
 'nigga',
+'niggas',
 'nigger',
 'nimphomania',
 'nipple',
@@ -411,7 +414,7 @@ from pattern.en import conjugate, lemma, lexeme, PARTICIPLE
 #
 #  IMPORTANT : while testing change this dir
 #
-DATA_DIR  =  "../../../../data/poetry/ohhla/ohhla_txt_files_with_url/"
+DATA_DIR  =  "../../../../data/poetry/ohhla/ohhla_txt_files_1/"#ohhla_txt_files_with_url/"
 #  NOTE: "txt_6" directory contains only 6 files for testing
 GENERATED_DIR  =  "../../../../data/poetry/ohhla/ohhla_generated/synsetGenerator_"+datetime.datetime.now().strftime('%Y-%m-%d_%H')+"/"
 
@@ -566,6 +569,18 @@ def strip_underscore(word):
     return no_punct
 
 
+#
+# take all UNIQUE terms, create reservoir, shuffle it when encountering next unique
+#
+
+RESERVOIR=["Jha"]
+
+#
+# LANGUAGE TEST using import_utilities.get_language(line)
+#
+
+#################################################
+
 labels_to_keep = ['Artist','Album','Song','Typed', 'VERSE','CHORUS']
 
 personal_pronouns = ["i","me","we","us","you","she","her","he","him","it","they","them"]
@@ -586,6 +601,7 @@ for subdir, dirs, files in os.walk(DATA_DIR):
             #
             cnt=0
             new_poem = ""
+            quit_language=0
            
             pf = open(subdir+file, 'rU')
             for line in pf:
@@ -594,6 +610,14 @@ for subdir, dirs, files in os.walk(DATA_DIR):
                 new_line=""
                 replacement_word=""
                 
+
+                if cnt>=6 and len(line) > 12 and "[" not in line and "english" not in import_utilities.get_language(line):
+                    quit_language+=1
+                    #print import_utilities.get_language(line), quit_language, "line:",line
+                else:
+                    if cnt>=6:
+                        quit_language-=1
+                    #print "quit_language:",quit_language,"line:", line
 
                 '''
 
@@ -712,7 +736,7 @@ Typed by : Timo.Scheffler@allgaeu.org
                                         
                                         similarterm = find_synset_word(word_nopunct)
                                         if similarterm == "ilk":
-                                            print "LIKE it"
+                                            #print "LIKE it"
                                             similarterm = "like"
 
                                         # is it a TRUNCATED VERB slang as in singin or wishin
@@ -728,10 +752,10 @@ Typed by : Timo.Scheffler@allgaeu.org
                                         #################      
                                         # SWEAR WORD    #
                                         #################
-
-                                        if similarterm == word and word in curses:
+                                        #print "at the garden of if:", word
+                                        if word in curses:
                                             similarterm = random.choice(curses)
-                                            # # print "SWEAR WORD word: '"+word+"'",similarterm
+                                            #print "SWEAR WORD word: '"+word+"'",similarterm
 
 
                                         ####################################################
@@ -753,7 +777,19 @@ Typed by : Timo.Scheffler@allgaeu.org
                                             replacement_word = ' '.join(word[0].upper() + word[1:] for word in replacement_word.split())
                                             ## # print "CAPITALIZE",replacement_word
 
-                                        # print word,replacement_word,"BEFOR BIG BLOCK new_line",new_line
+                                        
+                                        # RESERVOIR_OF_WEIRDNESS    
+                                        if "like" not in word and word == replacement_word and "english" in import_utilities.get_language(line):
+                                            if word not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1: 
+                                                RESERVOIR.append(word)
+                                                #print "add to RESERVOIR: ",import_utilities.countPunctuation(word),word
+                                            replacement_word = random.choice(RESERVOIR)
+                                            #print word,"  vs   replacement_word:",replacement_word #,"    new_line:",new_line
+                                        if quit_language>0:
+                                            #print "Probably foreign language: make a word salad in english"
+                                            replacement_word = random.choice(RESERVOIR)
+
+
                                         new_line += replacement_word+" "
                                         # print "BIG BLOCK new_line",new_line
                                         ## print "word: '"+word+"' replacement: '"+replacement_word+"' new_line:",new_line
@@ -762,6 +798,7 @@ Typed by : Timo.Scheffler@allgaeu.org
 
                                     elif not labelling and not skip_line:
                                         if word.isalpha():
+                                            #print "SAME?:",word
                                             new_line += word+" "
                                             # if not word.lower() in personal_pronouns :
                                             #     new_line += word+" "
@@ -815,7 +852,22 @@ Typed by : Timo.Scheffler@allgaeu.org
 
             f.close();
             
-            ## # print new_poem
+            #print RESERVOIR
+
+            txt_fn_path = GENERATED_DIR+"00AA_RESERVOIR.txt"
+            if not os.path.exists(GENERATED_DIR):
+                os.makedirs(GENERATED_DIR)
+
+            f=open(txt_fn_path,'w+')
+
+            dp = ' '.join(RESERVOIR)
+            f.write(dp)
+
+            f.close();
+
+
+print "RESERVOIR:", ' '.join(RESERVOIR)
+
 
 
 
