@@ -28,42 +28,8 @@ DIR = "../../../../data/poetryFoundation/"
 
 import pandas as pd 
 
-# remove annoying characters
-chars = {
-    '\xc2\x82' : ',',        # High code comma
-    '\xc2\x84' : ',,',       # High code double comma
-    '\xc2\x85' : '...',      # Tripple dot
-    '\xc2\x88' : '^',        # High carat
-    '\xc2\x91' : '\x27',     # Forward single quote
-    '\xc2\x92' : '\x27',     # Reverse single quote
-    '\xc2\x93' : '\x22',     # Forward double quote
-    '\xc2\x94' : '\x22',     # Reverse double quote
-    '\xc2\x95' : ' ',
-    '\xc2\x96' : '-',        # High hyphen
-    '\xc2\x97' : '--',       # Double hyphen
-    '\xc2\x99' : ' ',
-    '\xc2\xa0' : ' ',
-    '\xc2\xa6' : '|',        # Split vertical bar
-    '\xc2\xab' : '<<',       # Double less than
-    '\xc2\xbb' : '>>',       # Double greater than
-    '\xc2\xbc' : '1/4',      # one quarter
-    '\xc2\xbd' : '1/2',      # one half
-    '\xc2\xbe' : '3/4',      # three quarters
-    '\xca\xbf' : '\x27',     # c-single quote
-    '\xcc\xa8' : '',         # modifier - under curve
-    '\xcc\xb1' : '' ,        # modifier - under line
-    '\xe2\x80\x99': '\'',   # apostrophe
-    '\xe2\x80\x94': '--'    # em dash
-
-}
-
-
-# USAGE new_str = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, text)
-def replace_chars(match):
-    char = match.group(0)
-    return chars[char]
-
-
+# custom utilities....
+import import_utilities
 
 ##############################################################
 # NOTE: change HTML_DIR FOR TESTING
@@ -71,7 +37,7 @@ def replace_chars(match):
 # change to 'html/' to scan all files
 ##############################################################
 
-type_of_run="ALL"  # "60" "ALL"
+type_of_run="60"  # "60" "ALL"
 JSON_PATH = DIR+'json/'   
 HTML_DIR = "html_"+type_of_run
 json_fn = "poetryFoundation_JSON_"+type_of_run+".txt"
@@ -125,9 +91,15 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
             #     us.replace_with(new_tag)
             
             poem = soup.find("div", { "class" : "poem" })
-            
-            if poem:
+            #print poem.text.encode('utf-8')
+      
+            if poem :
                 #print "ok"
+                #WEIRD it will only print .text.encode('utf-8') of Bergval Drift after the if conditional
+                # print poem#.text.encode('utf-8')
+                # poem_br = poem.split("<br>")
+                # for li in poem_br:
+                #     print "li:",li
 
                 pa = soup.select('span.author a')
                 
@@ -155,7 +127,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         txt_cnt = txt_cnt+1
 
                         poem_title = title_id.find("h1").text
-                        poem_title = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem_title)
+                        poem_title = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, poem_title)
                                         
                         #print 'Title:',poem_title.encode('utf-8')
                         ALL_titles=ALL_titles+", "+poem_title
@@ -210,7 +182,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         about = soup.find('div', attrs={'class' : 'about'})
                         # nested within their own section
                         
-                        #print "entries have no labels:",about
+                        print "entries have no labels:",about
                         if about != None:
                             ps_about = about.find_all('p', attrs={'class' : 'section'})
 
@@ -223,7 +195,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                 category = labels.text
                                 #new_label = "category_"+ labels.text   
                                 #print category.encode('utf-8'), ": "
-                                clean_cat = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, category.encode('utf-8'))
+                                clean_cat = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, category.encode('utf-8'))
                                 clean_cat.replace(',','')
                                 clean_cat.rstrip(' ')
                                 clean_cat.lstrip(' ')
@@ -241,7 +213,7 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                                 lbs = labels.find_next_siblings()
 
                                 for lb in lbs:
-                                    clean_label = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lb.text.encode('utf-8'))
+                                    clean_label = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, lb.text.encode('utf-8'))
                                     clean_label.replace(',','')
                                     clean_label.rstrip(' ')
                                     clean_label.rstrip(',')
@@ -260,50 +232,62 @@ for root, subFolders, files in os.walk(DIR+HTML_DIR):
                         #   Catch 'Ali Pechman' error: where sidebar author was being attributed as author of poem
                         #    
                         #print categories['Poet'][0]
-                        #print 'Author:',poem_author.encode('utf-8')
+                        
+
                         if 'Poet' in categories:
                             if categories['Poet'][0].lstrip() != poem_author.lstrip():
                                 #print "CHANGE author from ",(poem_author.encode('utf-8','ignore')).decode('unicode-escape'),"to",(categories['Poet'][0].encode('utf-8','ignore')).decode('unicode-escape')
                                 poem_author = categories['Poet'][0].decode('unicode-escape')
-                                
+                                # ERROR check for author with umlaut
+                                if "Anne  Bront" in poem_author:
+                                    print " FOUND Anne  Bront"
+                                    poem_author = "Anne  Bronte"
 
                         #print 'Title:',poem_title.encode('utf-8')
                         #print 'dop:',poem_dop
                         # JSON write ALL to json folder
+                        print 'Author:',poem_author.encode('utf-8')
                         
                         #print "dop:", poem_dop.isdigit(),poem_dop.encode('utf-8'), type(poem_dop)
 
-                        json.dump({ 'id': html_file_number.encode('utf-8'), 'author': poem_author.encode('utf-8').lstrip(), 'title' : poem_title.encode('utf-8'), 'poet_DOB' : poet_DOB, 'poem_dop' : poem_dop.encode('utf-8'), 'labels':categories, 'poem' : poem.text.encode('utf-8') }, f_json)
+                        if poem_author.encode('utf-8') =="Ali  Pechman":
+                            print "FOUND Ali  Pechman"
+                        else:
+                            print 
+                            json.dump({ 'id': html_file_number.encode('utf-8'), 'author': poem_author.encode('utf-8').lstrip(), 'title' : poem_title.encode('utf-8'), 'poet_DOB' : poet_DOB, 'poem_dop' : poem_dop.encode('utf-8'), 'labels':categories, 'poem' : poem.text.encode('utf-8') }, f_json)
                       
                         # 
                         # all poem in one 
                         #
 
-                        clean_poem = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem.text.encode('utf-8'))
+                        clean_poem = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, poem.text.encode('utf-8'))
                         ALL_poems= ALL_poems+"\n\n**~**\n\n"+clean_poem
 
 
 
-                        # OBSOLETE... but do it anyway... 
+                        # 
                         # WRITE Poems to txt folder
+
                         txt_fn = html_file_number+".txt"
                         #print "TXT Filename: ", txt_fn.encode('utf-8')
 
                         dir = DIR+'txt'
                         txt_fn_path = dir+"/"+txt_fn
-                        # print "TXT Path/Filename: ",txt_fn_path.encode('utf-8')
-                        f=open(txt_fn_path,'w+')
-
-                        # REMOVED f.write(poem.text.encode('utf-8').strip())
                         
-                        clean_poem = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, poem.text.encode('utf-8'))
-                        
-                        dp = clean_poem
-                        #print dp
+      
 
-                        f.write(dp)
+                        # TOTAL CHEAT "246708" is an anomaly in dataset...
+                        if html_file_number != "247608":
+                            f=open(txt_fn_path,'w+')
+                            
+                            clean_poem = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, poem.text.encode('utf-8'))
+                            
+                            dp = clean_poem
+                            #print poem.text.encode('utf-8') #soup.prettify().encode('utf-8') #poem.html #.text.encode('utf-8')
 
-                        f.close();
+                            f.write(dp)
+
+                            f.close();
 
             
 f_json.close();    

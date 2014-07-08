@@ -10,6 +10,7 @@ http://pandas.pydata.org/pandas-docs/dev/generated/pandas.io.json.read_json.html
 (valdiate: http://jsonlint.com/)
 
 2.
+
 convert the category and labels to numeric values
 
 
@@ -39,28 +40,45 @@ develop vocaublaries for specific authors
 
 
 from __future__ import division
-from collections import Counter
+# from collections import Counter
+from pprint import pprint
 
-import nltk, re, pprint
+import nltk, re
 from nltk import Text
 from nltk.corpus import cmudict
 from nltk.tokenize import WhitespaceTokenizer
 
-############
+import os
+import json
 
-type_of_run="ALL"
+##### CHANGE THIS TO "6" OR "60" FOR TESTING #########
+
+type_of_run="60"
+
+######################################################
+
 DATA_DIR  =  "../../../../data/poetryFoundation/"
 # "...._69.txt" contains only 69 files for testing
-JSON_FILE  =  "json/poetryFoundation_JSON_"+type_of_run+".txt"
+
+READ_JSON_FILE  =  "json/poetryFoundation_JSON_"+type_of_run+".txt"
 csv_fn="output_"+type_of_run+".csv"
 csv_PATH = DATA_DIR+csv_fn
 
+# replace the csv with json with features numerized
+WRITE_JSON_PATH = DATA_DIR+"json/STEP2_poetryFoundation_JSON_"+type_of_run+".txt"
+
+
+try:
+    if os.path.isfile(WRITE_JSON_PATH):
+            os.unlink(WRITE_JSON_PATH)
+except Exception, e:
+        print e
+
+
+# JSON file
+f_json=open(WRITE_JSON_PATH,'a')
+
 ############
-
-
-from json import JSONDecoder
-from functools import partial
-from string import whitespace
 
 import csv
 import pandas as pd 
@@ -71,128 +89,7 @@ import matplotlib.pyplot as plt
 #
 # utilities
 #
-
-# remove annoying characters
-chars = {
-    '\xc2\x82' : ',',        # High code comma
-    '\xc2\x84' : ',,',       # High code double comma
-    '\xc2\x85' : '...',      # Tripple dot
-    '\xc2\x88' : '^',        # High carat
-    '\xc2\x91' : '\x27',     # Forward single quote
-    '\xc2\x92' : '\x27',     # Reverse single quote
-    '\xc2\x93' : '\x22',     # Forward double quote
-    '\xc2\x94' : '\x22',     # Reverse double quote
-    '\xc2\x95' : ' ',
-    '\xc2\x96' : '-',        # High hyphen
-    '\xc2\x97' : '--',       # Double hyphen
-    '\xc2\x99' : ' ',
-    '\xc2\xa0' : ' ',
-    '\xc2\xa6' : '|',        # Split vertical bar
-    '\xc2\xab' : '<<',       # Double less than
-    '\xc2\xbb' : '>>',       # Double greater than
-    '\xc2\xbc' : '1/4',      # one quarter
-    '\xc2\xbd' : '1/2',      # one half
-    '\xc2\xbe' : '3/4',      # three quarters
-    '\xca\xbf' : '\x27',     # c-single quote
-    '\xcc\xa8' : '',         # modifier - under curve
-    '\xcc\xb1' : '' ,        # modifier - under line
-    '\xe2\x80\x99': '\'',   # apostrophe
-    '\xe2\x80\x94': '--',    # em dash
-    '\xe2\x80\x93': '\''    # apostrophe
-
-}
-
-
-# USAGE new_str = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, text)
-def replace_chars(match):
-    char = match.group(0)
-    return chars[char]
-
-
-#count words (not tokens, and not punctuation)
-nonPunct = re.compile('.*[A-Za-z0-9].*')  # must contain a letter or digit
-def countWords(str):
-    text = ['this', 'is', 'a', 'sentence', '.']
-    filtered = [w for w in str if nonPunct.match(w)]
-    counts = Counter(filtered)
-    return len(counts)
-
-
-# STRIP PUNCTUATION BUT KEEP IT TO BE ADDED LATER
-def strip_punctuation_stressed(word):
-    # define punctuations
-    punctuations = '!()-[]{};:"\,<>./?@#$%^&*_~'
-    my_str = word
-
-    # remove punctuations from the string
-    no_punct = ""
-    punct=""
-    for char in my_str:
-        if char not in punctuations:
-            ##print "CHAR:", char
-            no_punct = no_punct + char
-        else:
-            punct = punct+char
-
-    ##print "word:",no_punct,"punct:", punct
-    return {'word':no_punct,'punct':punct}
-
-
-
-# convert the cmudict prondict into just numbers
-def strip_letters(ls):
-    #print "strip_letters"
-    nm = ''
-    for ws in ls:
-        #print "ws",ws
-        for ch in list(ws):
-            #print "ch",ch
-            if ch.isdigit():
-                nm=nm+ch
-                #print "ad to nm",nm, type(nm)
-    return nm
-
-
-
-# clean up date of birth diverse formatting
-def process_dob(poet_dob):
-
-    birth = '0000'
-    death = '0000'
-
-    # empty
-    if poet_dob == '':
-        birth = '0000'
-        death = '0000'
-
-    # form "b. 1964"
-    if poet_dob.split(".")[0]=='b' or poet_dob.split(".")[0]=='b.':
-        birth=poet_dob.split(".")[1]
-        death ='0000'
-
-    # form "1964-2022"
-    elif len(poet_dob.split("-"))>1:
-        birth=poet_dob.split("-")[0]
-        death =poet_dob.split("-")[1]
-
-    return birth,death
-
-
-
-def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
-    buffer = ''
-    for chunk in iter(partial(fileobj.read, buffersize), ''):
-         chunk.strip()
-         buffer += chunk
-         while buffer:
-             try:
-                 result, index = decoder.raw_decode(buffer)
-                 yield result
-                 buffer = buffer[index:]
-             except ValueError:
-                 # Not enough data to decode, read more
-                 break
-
+import import_utilities
 
 
 #
@@ -200,13 +97,15 @@ def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
 #
 
 master_list =[]
-master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem','poem_stress_list','poem_stress_list_no_punct'])
+#######  FULL      master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem','poem_stress_list','poem_stress_list_no_punct','chars_per_line'])
 
+
+master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem_stress_list_no_punct','chars_per_line'])
 #
 # Load JSON
 #
 
-with open(DATA_DIR+JSON_FILE, 'r') as infh:
+with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
     
     cnt=0 
     no_lines=0
@@ -216,7 +115,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
     
     
     # for every poem-file-object
-    for data in json_parse(infh):
+    for data in import_utilities.json_parse(infh):
         # process object 
         cnt=cnt+1
         #print "cnt:", cnt
@@ -244,19 +143,21 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                 date_of_publication = data[val.encode('utf-8')].encode('utf-8')
             elif val=='id':
                 id=data[val.encode('utf-8')].encode('utf-8')
+            elif val=='poem':
+                poem_from_csv=data[val.encode('utf-8')].encode('utf-8')
             elif val=='labels':
                 categories =data[val.encode('utf-8')]
                 #print "categories:",categories
                 for k,l in categories.iteritems():
-                    cat_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, k)
+                    cat_no_cruft = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, k)
                     if cat_no_cruft != 'Poet':
                         for lid,lv in enumerate(l):
-                            lv_no_cruft = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, lv)
+                            lv_no_cruft = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, lv)
                             labels_ls.append(cat_no_cruft+"_"+lv_no_cruft)#.encode('utf-8'))
                         
             
         # make dob normal
-        date_of_birth, date_of_death = process_dob(poet_dob)
+        date_of_birth, date_of_death = import_utilities.process_dob(poet_dob)
         #print (date_of_publication == "0000"), date_of_publication,date_of_birth,date_of_death 
 
         # DIRTY DATA! ~ clean str.isdigit() types out of this column in step 1
@@ -275,11 +176,11 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 
         pf = open(DATA_DIR+"txt/"+id+".txt", 'rU')
 
-        i=0
+        i=0.
         v=0
         vb=0
         tvl=0
-        num_empty_lines=0
+        num_empty_lines=0.
         prev_verse_i=0 
         line_len = 0
 
@@ -296,11 +197,12 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
         avg_lines_per_verse=0
         
         num_of_words = 0
-        num_of_lines = 0
+        num_of_non_empty_lines = 0
         num_of_verses = 0
 
         verse_lines_list=[]
         words_per_line=[]
+        chars_per_line=[]
 
         poem=""
 
@@ -309,7 +211,9 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 
         for line in pf:
 
-            i=i+1
+            
+
+            i=i+1 
             stress=''
             stress_no_punct=''
             
@@ -317,13 +221,25 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             for word in nltk.word_tokenize(line.strip(' \t\n\r')):
                 
                 # get ride of unicode utf-8 cruft
-                word_no_space = re.sub('(' + '|'.join(chars.keys()) + ')', replace_chars, word)
+                word_no_space = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, word)
                 word_no_space = word_no_space.strip(' \t\n\r')
                 # TOO MUCH gets rid of all hyphens, apostrophes etc..::: ''.join(e for e in word_no_space if e.isalnum())
                 # residual space destruction
 
-                word_len=word_len+len(word_no_space)
-                #print len(word_no_space), word_no_space
+                
+                # print "len:",len(word_no_space), "word_no_space:", word_no_space
+                # print "countWords("+word_no_space+"):",countWords(word_no_space)
+
+
+                #
+                # CHECK to see if line is simply _______ or ******* or $##$$$$
+                #    
+                if import_utilities.countWords(word_no_space)==0 and len(word_no_space)>0:
+                    #print "this word is probably just underscores or asterixes do NOT include it in avg_word_length"
+                    pass
+                else:
+                    word_len=word_len+len(word_no_space)
+
 
                 if len(word_no_space)>len(largest_word):
                     #print word_len,len(largest_word)
@@ -338,7 +254,7 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             for word in WhitespaceTokenizer().tokenize(line.strip(' \t\n\r')):    
 
 
-                word_punct = strip_punctuation_stressed(word.lower())
+                word_punct = import_utilities.strip_punctuation_stressed(word.lower())
                 word = word_punct['word']
                 punct = word_punct['punct']
 
@@ -347,8 +263,8 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                     stress= stress+"*"+word+"*"
                 else:
                     #print word,stress,prondict[word][0]
-                    stress = stress+strip_letters(prondict[word][0])
-                    stress_no_punct=stress_no_punct+strip_letters(prondict[word][0])
+                    stress = stress + import_utilities.strip_letters(prondict[word][0])
+                    stress_no_punct=stress_no_punct + import_utilities.strip_letters(prondict[word][0])
 
                 if len(punct)>0:
                     stress= stress+"*"+punct+"*"
@@ -364,19 +280,33 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             #
 
 
-
-            line_len = len(nltk.word_tokenize(line))
-            words_per_line.append(countWords(line.split()))
-            #print "countWords(str):",countWords(line.split()),"line_len .. len(nltk.word_tokenize(line)):",line_len#,line
-            num_of_words = num_of_words + line_len
-            if line_len>longest_line:
-                longest_line=line_len
+            # find line length
+            if import_utilities.countChars(line.split())!=0:
+                line_len = len(nltk.word_tokenize(line))
+                words_per_line.append(import_utilities.countWords(line.split()))
+                chars_per_line.append(import_utilities.countChars(line.split()))
+                
+                #print i, chars_per_line, words_per_line, line
+                #print "words_per_line:",countWords(line.split())
+                #print "line_len .. len(nltk.word_tokenize(line)):",line_len
+                #print "line:",line
+                if line_len<0:
+                    line_len=0
+                num_of_words = num_of_words + line_len
+                if line_len>longest_line:
+                    longest_line=line_len
+            else:
+                if i==1:
+                    #print "FIRST line empty:",i,import_utilities.countChars(line.split())
+                    i-=1
+                    num_empty_lines-=1
             
+                
 
             # find verse
             if len(nltk.word_tokenize(line))==0:
                 vb=vb+1
-                #print "~~~~~~~~~~~~~~~~~~~~~~~~~vb=",vb,i,"num_of_verses:",num_of_verses, "prev_verse_i:",prev_verse_i
+                #print "~~~~~~~~~~~~~~~~~~~~~~~~~vb=",vb,"\ni=",i,"  num_of_verses:",num_of_verses, "   prev_verse_i:",prev_verse_i
                 num_empty_lines=num_empty_lines+1
                 if  (i-prev_verse_i-vb) > 0 :      
                     verse_len=i-prev_verse_i-vb
@@ -386,13 +316,17 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                     vb=0
                     tvl=tvl + verse_len
 
-                    # #SPECIAL CASE: TITLE before a verse
-                    # print "verse_len:",verse_len,"len(nltk.word_tokenize(line))",len(nltk.word_tokenize(line))
+                    # #SPECIAL CASE: TITLE or diacritic before a verse
+                    #print "verse_len:",verse_len,"countWords(line_previous)",countWords(line_previous), "line_previous:",line_previous
 
-                    # if verse_len==1 and len(nltk.word_tokenize(line))==1:# and num_of_verses>=1:
-                    #   print "TITLE before verse:",len(nltk.word_tokenize(line))
-                    #   num_of_verses=num_of_verses-1
-                    #   del verse_lines_list[-1]
+                    if verse_len==1 and import_utilities.countWords(line_previous)==0:# and num_of_verses>=1:
+                        
+                        num_of_verses=num_of_verses-1
+                        #print "TITLE before verse or decorative # ~ . : detect from num_of_verses:",num_of_verses
+                        del verse_lines_list[-1]
+
+
+            line_previous=line
 
 
 
@@ -407,16 +341,20 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                    
         if i!=0 and num_of_words>0: 
             
-            num_of_lines = i- num_empty_lines
+            num_of_non_empty_lines = i- num_empty_lines
+
+            #print "i=",i,"num_empty_lines:",num_empty_lines, "num_of_non_empty_lines =",num_of_non_empty_lines
+
+
             avg_word_len = word_len/num_of_words
-            avg_line_len = num_of_words / num_of_lines
+            avg_line_len = num_of_words / num_of_non_empty_lines
             largest_word_corpus_ls.append(largest_word)
             
             # only one verse?
-            if tvl==0:
+            if num_of_verses==1:
                 avg_lines_per_verse=i   
             else:
-                avg_lines_per_verse = tvl/num_of_verses
+                avg_lines_per_verse = num_of_non_empty_lines/num_of_verses
         
             #        
             # BASIC FEATURES
@@ -430,10 +368,12 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             # print 'date_of_publication:',date_of_publication
             
             # print "num_of_words =",num_of_words
-            # print "num_of_lines =",num_of_lines
+            # print "num_empty_lines =",num_empty_lines
             # print "num_of_verses =",num_of_verses
 
-            # print "avg_word_len =",avg_word_len
+            #print "word_len:",word_len
+
+            #print "avg_word_len =",avg_word_len
             # print "avg_line_len =",avg_line_len
             
             # vl = ",".join(map(str,verse_lines_list))
@@ -451,7 +391,14 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
             # PANDAS DATA FRAME
             # 
 
-            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem,poem_stress_list,poem_stress_list_no_punct])
+            #
+
+
+            ######### FULL LIST .....      master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem,poem_stress_list,poem_stress_list_no_punct,chars_per_line])
+
+
+            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem_stress_list_no_punct,chars_per_line])
+
 
             # since labels might have been added
             if len(master_list[0])>len(master_list[-1]):
@@ -487,8 +434,9 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
                         insert_needed = False
                         break
                 if insert_needed:
-                    #print "Inserting NEW label: ", l.encode('utf-8')
-                    master_list[0].append(l.encode('utf-8'))
+                    new_lbl= l.replace (" ", "_").lower().encode('utf-8')
+                    #print "Inserting NEW label: ", new_lbl
+                    master_list[0].append(new_lbl)
 
                     #print "Inserting zeroes for each row of new label"
                     for row in master_list:
@@ -513,87 +461,90 @@ with open(DATA_DIR+JSON_FILE, 'r') as infh:
 # print '##########'
 
 # for index, item in enumerate(master_list):
-#         print index, item
+#          print index, item
 
 
 pf.close()
 
-with open(csv_PATH, "wb") as f:
-    writer = csv.writer(f)
-    writer.writerows(master_list)
+
+
+#
+# (holy fuckin shit did this simple traverse ever take me forever: 1 day approx.)
+# PUT NUMERIC VALUES INTO THEIR OWN COLUMNS in a dictionary with keys so it can be written as JSON then imported to pandas
+#
+master_list_of_dictionaries=[]
+for ml in master_list:
+    tmp_dict={}
+    if master_list.index(ml)!=0:
+        for k,v in enumerate(ml):
+            key =master_list[0][k]
+            if key != v:
+                #print k,key,v
+                tmp_dict[key.replace("'", '"')]= v
+                if "words_per_line" in key:
+                    for i,wpl in enumerate(v):
+                        tmp_dict["words_per_line_"+str(i)]=float(wpl)
+                elif "chars_per_line" in key:
+                    for i,wpl in enumerate(v):
+                        tmp_dict["chars_avg_per_line_"+str(i)]=float(wpl)
+                elif "poem_stress_list_no_punct" in key:
+                    for i,wpl in enumerate(v):
+                        #print "'"+wpl+"'",wpl.rstrip().lstrip().isdigit()
+                        if len(wpl)==0:
+                            print "zero"
+                            wpl="0"
+                        tmp_dict["stress__on_line_"+str(i)]=wpl#float(wpl)
+                elif "largest_word" in key:
+                    tmp_dict["largest_word_length"]=len(key)
+        # STORAGE
+        master_list_of_dictionaries.append(tmp_dict)
+        #json.dump(tmp_dict, f_json)
+        #json.dump(',',f_json)
+                      
+
+################# 
+#  write csv    #
+#################
+# with open(csv_PATH, "wb") as f:
+#     writer = csv.writer(f)
+#     writer.writerows(master_list_of_dictionaries)
+
+    # EVIDENCE OF A FUTILE SYNTAX STRUGGLE 
+    #   for k in ml:
+    #     if master_list.index(ml) != 0:
+    #         print master_list[0][ml.index(k)]
+    #         tmp_dict[master_list[0][ml.index(k)]]= k
+    #         if "words_per_line" in master_list[0][ml.index(k)]:
+    #             for i,wpl in enumerate(k):
+    #                 tmp_dict["line_"+str(i)]=wpl
+    #         elif "poem_stress_list_no_punct" in master_list[0][ml.index(k)]:
+    #             for i,psl in enumerate(k):
+    #                 tmp_dict["line_stress_"+str(i)]=psl
+    #         elif "largest_word" in master_list[0][ml.index(k)]:
+    #             tmp_dict["largest_word_len"]=len(k)
+
+    # storage                
+    
+                   
+# print "\npprint:"
+# pprint(master_list_of_dictionaries)
+
+
+json.dump(master_list_of_dictionaries, f_json)          
+f_json.close(); 
+
+# print "\n\n",master_list[-1]
+
+
 
 #
 # test panda input 
 #
 
-print cnt,"poems processed"
-print no_lines,"poems with no lines"
-print "CSV file created at:",csv_PATH
+# print cnt,"poems processed"
+# print no_lines,"poems with no lines"
+# print "binarized CSV file created at:",csv_PATH
 
-df = pd.read_csv(csv_PATH)
-print "\nDATAFRAME.head():\n",df.head(),"\n"
-print "\nDATAFRAME.tail():\n",df.tail(),"\n"    
-
-
-'''
-
-10561 poems processed
-9 poems with no lines
-CSV file created at: ../../../../data/poetryFoundation/output.csv
-/Users/jhave/anaconda/lib/python2.7/site-packages/pandas/io/parsers.py:1130: DtypeWarning: Columns (5) have mixed types. Specify dtype option on import or set low_memory=False.
-  data = self._reader.read(nrows)
-DATAFRAME.head():
-      id              author                                     title  \
-0     10      Averill  Curdy                                 Probation   
-1  11053    Margaret  Walker                             For My People   
-2  11099  Janet Loxley Lewis                          Carmel Highlands   
-3  11288       Mary  Barnard  Remarks on Poetry and the Physical World   
-4  11312       Dylan  Thomas   When All My Five and Country Senses See   
-
-   date_of_birth  date_of_death date_of_publication  num_of_words  \
-0              0              0                2005           188   
-1           1915           1998                1937           527   
-2           1899           1998                1938           110   
-3           1909           2001                1938           108   
-4           1914           1953                1938           127   
-
-   num_of_lines  num_of_verses  avg_word_len      ...       \
-0            35              7      3.968085      ...        
-1            57             10      4.548387      ...        
-2            14              2      4.572727      ...        
-3            15              3      4.175926      ...        
-4            14              2      4.031496      ...        
-
-   Poetic Terms_Pantoum  Poetic Terms_Pantoum,   Region_Mexico  \
-0                     0                       0              0   
-1                     0                       0              0   
-2                     0                       0              0   
-3                     0                       0              0   
-4                     0                       0              0   
-
-  Poetic Terms_Quatrain Poetic Terms_Quatrain,  Poetic Terms_Aubade,   \
-0                     0                       0                     0   
-1                     0                       0                     0   
-2                     0                       0                     0   
-3                     0                       0                     0   
-4                     0                       0                     0   
-
-   Poetic Terms_Tercet  Poetic Terms_Ghazal,   Poetic Terms_Nursery Rhymes,   \
-0                    0                      0                              0   
-1                    0                      0                              0   
-2                    0                      0                              0   
-3                    0                      0                              0   
-4                    0                      0                              0   
-
-   Region_Russia  
-0              0  
-1              0  
-2              0  
-3              0  
-4              0  
-
-[5 rows x 278 columns] 
-
-[Finished in 495.0s]
-'''
-
+# df = pd.read_csv(csv_PATH)
+# print "\nDATAFRAME.head():\n",df.head(),"\n"
+# print "\nDATAFRAME.tail():\n",df.tail(),"\n"    
