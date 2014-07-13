@@ -2,9 +2,139 @@
 from collections import Counter
 
 import re
+
+from nltk_contrib.readability.textanalyzer import syllables_en
+from nltk.corpus import cmudict,wordnet as wn
+from nltk.corpus import stopwords
+import nltk, re, pprint
+from nltk import Text
+from nltk.corpus import cmudict
+import nltk
+
 from json import JSONDecoder
 from functools import partial
 from string import whitespace
+import string
+
+import random
+from random import shuffle
+
+
+from nltk.corpus import stopwords   # stopwords to detect language
+from nltk import wordpunct_tokenize # function to split up our words
+
+#
+# pattern.en
+# module to singularize and do verb tenses
+# http://www.clips.ua.ac.be/pattern
+#
+from pattern.en import wordnet
+from pattern.en import pluralize, singularize
+from pattern.en import comparative, superlative
+from pattern.en import conjugate, lemma, lexeme, PARTICIPLE
+# # # print conjugate('googled', tense=PARTICIPLE, parse=True)  
+# >>> googling
+# NOTE: it also does sentiment, returns a tuple...
+# from pattern.en import sentiment
+# and can be used with weights using http://sentiwordnet.isti.cnr.it/ 
+
+
+personal_pronouns = ["i","me","we","us","you","she","her","he","him","it","they","them"]
+
+impera =["could","should","would","couldn't","wouldn't", "shouldn't","did","didn't","will","will not","does","does not","can","cannot"]
+
+conjuncts = ["after","although","as","as if","as long as","as much as","as soon as","as though","because","before","even","even if","even though","if","if only","if when","if then ","inasmuch","in order that","just as","lest","now","now since","now that","now when","once","provided","provided that","rather than","since","so that","supposing","than","that","though","til","unless","until","when","whenever","where","whereas","where if","wherever","whether","which","while","who","whoever","why"]
+
+
+indef_prono =["anybody","anyone","anything","everybody","everyone","everything","nobody","none","no one","nothing","somebody","someone","something"]
+
+prepo =["aboard","about","above","across","after","against","along","amid","among","anti","around","as","at","before","behind","below","beneath","beside","besides","between","beyond","but","by","concerning","considering","despite","down","during","except","excepting","excluding","following","for","from","in","inside","into","minus","near","of","off","on","onto","opposite","outside","over","past","per","plus","regarding","round","save","since","than","through","to","toward","towards","under","underneath","unlike","until","up","upon","versus","via","with","within","without"]
+
+rel_prono=["that","when","which","whichever","whichsoever","who","whoever","whosoever","whom","whomever","whomsoever whose","whosesoever whatever","whatsoever","whose"]
+#
+# parseStressOfLine(line) 
+# function that takes a line
+# parses it for stress
+# corrects the cmudict bias toward 1
+# and returns two strings 
+#
+# 'stress' in form '0101*,*110110'
+#   -- 'stress' also returns words not in cmudict '0101*,*1*zeon*10110'
+# 'stress_no_punct' in form '0101110110'
+
+
+def parseStressOfLine(line):
+    
+    prondict = cmudict.dict()
+    stress=""
+    stress_no_punct=""
+    print line
+
+    tokens = [words.lower() for words in nltk.word_tokenize(line)] 
+    for word in tokens:        
+
+        word_punct =  strip_punctuation_stressed(word.lower())
+        word = word_punct['word']
+        punct = word_punct['punct']
+
+        #print word
+
+        if word not in prondict:
+            # if word is not in dictionary
+            # add it to the string that includes punctuation
+            stress= stress+"*"+word+"*"
+        else:
+            zero_bool=True
+            for s in prondict[word]:
+                # oppose the cmudict bias toward 1
+                # search for a zero in array returned from prondict
+                # if it exists use it
+                # print strip_letters(s),word
+                if strip_letters(s)=="0":
+                    stress = stress + "0"
+                    stress_no_punct = stress_no_punct + "0"
+                    zero_bool=False
+                    break
+
+            if zero_bool:
+                stress = stress + strip_letters(prondict[word][0])
+                stress_no_punct=stress_no_punct + strip_letters(prondict[word][0])
+
+        if len(punct)>0:
+            stress= stress+"*"+punct+"*"
+
+    return {'stress':stress,'stress_no_punct':stress_no_punct}
+
+
+
+
+
+def get_language_likelihood(input_text):
+    """Return a dictionary of languages and their likelihood of being the 
+    natural language of the input text
+    """
+
+    input_text = input_text.lower()
+    input_words = wordpunct_tokenize(input_text)
+
+    language_likelihood = {}
+    total_matches = 0
+    for language in stopwords._fileids:
+        language_likelihood[language] = len(set(input_words) &
+                set(stopwords.words(language)))
+
+    return language_likelihood
+
+def get_language(input_text):
+    """Return the most likely language of the given text
+    """
+
+    likelihoods = get_language_likelihood(input_text)
+    return sorted(likelihoods, key=likelihoods.get, reverse=True)[0]
+
+exclaims =["oh","ooh","ah","aiiya","eek","ooo"]
+state_abbrev= ["IT", "US", "AL","AK","AZ","AR","CA","CO","CT","DE","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","MD","MA","MI","MN","MS","MO","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY", "oh","hi","id"]# REMOVED "DC","FL",
+
 
 #count words (not tokens, and not punctuation)
 nonPunct = re.compile('.*[A-Za-z0-9].*')  # must contain a letter or digit
@@ -45,27 +175,66 @@ def strip_punctuation_stressed(word):
     punct=""
     for char in my_str:
         if char not in punctuations:
-            ##print "CHAR:", char
+            ####print "CHAR:", char
             no_punct = no_punct + char
         else:
             punct = punct+char
 
-    ##print "word:",no_punct,"punct:", punct
+    ####print "word:",no_punct,"punct:", punct
     return {'word':no_punct,'punct':punct}
 
 
+# STRIP PUNCTUATION & discard
+def strip_punctuation(word):
+    # define punctuations
+    punctuations = '!()-[]{};:"\,<>./?@#$%^&*_~'
+    my_str = word
+
+    # remove punctuations from the string
+    no_punct = ""
+    punct=""
+    for char in my_str:
+        if char not in punctuations:
+            ####print "CHAR:", char
+            no_punct = no_punct + char
+        
+    return no_punct
+
+# STRIP PUNCTUATION & notify if found
+def strip_punctuation_bool(word):
+    # define punctuations
+    punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~_'''
+    my_str = word
+
+    # remove punctuations from the string
+    no_punct = ""
+    punct=""
+    position=""
+    punct_bool=False
+    for char in my_str:
+        if char not in punctuations:
+            ### # ##print "CHAR:", char
+            no_punct = no_punct + char
+            
+        else:
+            punct_bool=True
+            punct += char
+            #no_punct = no_punct+' '
+
+    ### # ##print "word:",no_punct,"punct:", punct
+    return {'word':no_punct,'punct':punct, 'punct_bool':punct_bool}
 
 # convert the cmudict prondict into just numbers
 def strip_letters(ls):
-    #print "strip_letters"
+    ###print "strip_letters"
     nm = ''
     for ws in ls:
-        #print "ws",ws
+        ###print "ws",ws
         for ch in list(ws):
-            #print "ch",ch
+            ###print "ch",ch
             if ch.isdigit():
                 nm=nm+ch
-                #print "ad to nm",nm, type(nm)
+                ###print "ad to nm",nm, type(nm)
     return nm
 
 
@@ -144,3 +313,539 @@ chars = {
 def replace_chars(match):
     char = match.group(0)
     return chars[char]
+
+
+heres=["nowhere","somewhere","there","anywhere","not here","here"]
+
+#####################
+# ALERT  @$!
+#####################
+
+# HOW_TO put all utilities into subdirectory and call them in: sys.path.insert(0,'/utilities')
+#import profanityFilter_ARR.py
+curses = [
+'2g1c',
+'2 girls 1 cup',
+'acrotomophilia',
+'anal',
+'anilingus',
+'anus',
+'arsehole',
+'ass',
+'asshole',
+'assmunch',
+'auto erotic',
+'autoerotic',
+'babeland',
+'baby batter',
+'ball gag',
+'ball gravy',
+'ball kicking',
+'ball licking',
+'ball sack',
+'ball sucking',
+'bangbros',
+'bareback',
+'barely legal',
+'barenaked',
+'bastardo',
+'bastinado',
+'bbw',
+'bdsm',
+'beaver cleaver',
+'beaver lips',
+'bestiality',
+'bi curious',
+'big black',
+'big breasts',
+'big knockers',
+'big tits',
+'bimbos',
+'birdlock',
+'bitch',
+'black cock',
+'blonde action',
+'blonde on blonde action',
+'blow j',
+'blow your l',
+'blue waffle',
+'blumpkin',
+'bollocks',
+'bondage',
+'boner',
+'boob',
+'boobs',
+'booty call',
+'brown showers',
+'brunette action',
+'bukkake',
+'bulldyke',
+'bullet vibe',
+'bung hole',
+'bunghole',
+'busty',
+'butt',
+'buttcheeks',
+'butthole',
+'camel toe',
+'camgirl',
+'camslut',
+'camwhore',
+'carpet muncher',
+'carpetmuncher',
+'chocolate rosebuds',
+'circlejerk',
+'cleveland steamer',
+'clit',
+'clitoris',
+'clover clamps',
+'clusterfuck',
+'cock',
+'cocks',
+'coprolagnia',
+'coprophilia',
+'cornhole',
+'cum',
+'cumming',
+'cunnilingus',
+'cunt',
+'darkie',
+'date rape',
+'daterape',
+'deep throat',
+'deepthroat',
+'dick',
+'dildo',
+'dirty pillows',
+'dirty sanchez',
+'dog style',
+'doggie style',
+'doggiestyle',
+'doggy style',
+'doggystyle',
+'dolcett',
+'domination',
+'dominatrix',
+'dommes',
+'donkey punch',
+'double dong',
+'double penetration',
+'dp action',
+'eat my ass',
+'ecchi',
+'ejaculation',
+'erotic',
+'erotism',
+'escort',
+'ethical slut',
+'eunuch',
+'faggot',
+'fecal',
+'felch',
+'fellatio',
+'feltch',
+'female squirting',
+'femdom',
+'figging',
+'fingering',
+'fisting',
+'foot fetish',
+'footjob',
+'frotting',
+'fuck',
+'fucking',
+'fuck buttons',
+'fudge packer',
+'fudgepacker',
+'futanari',
+'g-spot',
+'gang bang',
+'gay sex',
+'genitals',
+'giant cock',
+'girl on',
+'girl on top',
+'girls gone wild',
+'goatcx',
+'goatse',
+'gokkun',
+'golden shower',
+'goo girl',
+'goodpoop',
+'goregasm',
+'grope',
+'group sex',
+'guro',
+'hand job',
+'handjob',
+'hard core',
+'hardcore',
+'hentai',
+'homoerotic',
+'honkey',
+'hooker',
+'hot chick',
+'how to kill',
+'how to murder',
+'huge fat',
+'humping',
+'incest',
+'intercourse',
+'jack off',
+'jail bait',
+'jailbait',
+'jerk off',
+'jigaboo',
+'jiggaboo',
+'jiggerboo',
+'jizz',
+'juggs',
+'kike',
+'kinbaku',
+'kinkster',
+'kinky',
+'knobbing',
+'leather restraint',
+'leather straight jacket',
+'lemon party',
+'lolita',
+'lovemaking',
+'make me come',
+'male squirting',
+'masturbate',
+'menage a trois',
+'milf',
+'missionary position',
+'motherfucker',
+'mound of venus',
+'mr hands',
+'muff diver',
+'muffdiving',
+'muthafucka',
+'nambla',
+'nawashi',
+'negro',
+'neonazi',
+'nig nog',
+'nigga',
+'nigger',
+'nimphomania',
+'nipple',
+'nipples',
+'nsfw images',
+'nude',
+'nudity',
+'nympho',
+'nymphomania',
+'octopussy',
+'omorashi',
+'one cup two girls',
+'one guy one jar',
+'orgasm',
+'orgy',
+'paedophile',
+'panties',
+'panty',
+'pedobear',
+'pedophile',
+'pegging',
+'penis',
+'phone sex',
+'piece of shit',
+'piss pig',
+'pissing',
+'pisspig',
+'playboy',
+'pleasure chest',
+'pole smoker',
+'ponyplay',
+'poof',
+'poop chute',
+'poopchute',
+'porn',
+'porno',
+'pornography',
+'prince albert piercing',
+'pthc',
+'pubes',
+'pussy',
+'queaf',
+'raghead',
+'raging boner',
+'rape',
+'raping',
+'rapist',
+'rectum',
+'reverse cowgirl',
+'rimjob',
+'rimming',
+'rosy palm',
+'rosy palm and her 5 sisters',
+'rusty trombone',
+'s&m',
+'sadism',
+'scat',
+'schlong',
+'scissoring',
+'semen',
+'sex',
+'sexo',
+'sexy',
+'shaved beaver',
+'shaved pussy',
+'shemale',
+'shibari',
+'shit',
+'shota',
+'shrimping',
+'slanteye',
+'slut',
+'smut',
+'snatch',
+'snowballing',
+'sodomize',
+'sodomy',
+'spic',
+'spooge',
+'spread legs',
+'strap on',
+'strapon',
+'strappado',
+'strip club',
+'style doggy',
+'suck',
+'sucks',
+'suicide girls',
+'sultry women',
+'swastika',
+'swinger',
+'tainted love',
+'taste my',
+'tea bagging',
+'threesome',
+'throating',
+'tied up',
+'tight white',
+'tit',
+'tits',
+'titties',
+'titty',
+'tongue in a',
+'topless',
+'tosser',
+'towelhead',
+'tranny',
+'tribadism',
+'tub girl',
+'tubgirl',
+'tushy',
+'twat',
+'twink',
+'twinkie',
+'two girls one cup',
+'undressing',
+'upskirt',
+'urethra play',
+'urophilia',
+'vagina',
+'venus mound',
+'vibrator',
+'violet blue',
+'violet wand',
+'vorarephilia',
+'voyeur',
+'vulva',
+'wank',
+'wet dream',
+'wetback',
+'white power',
+'women rapping',
+'wrapping men',
+'wrinkled starfish',
+'xx',
+'xxx',
+'yaoi',
+'yellow showers',
+'yiffy',
+'zoophilia']
+
+
+
+
+#
+# HELPR FUNCTION: FIND A SIMILAR WORD OF SIMILAR SIZE
+#
+
+#
+# HELPR FUNCTION: FIND A SIMILAR WORD OF SIMILAR SIZE
+#
+
+def find_synset_word(word):
+    
+
+    wordstring=word
+
+    # get rid of punctuation
+    #wordstring.translate(None, string.punctuation)
+    word_punct = strip_punctuation_bool(word)
+    word = word_punct['word']
+    punct = word_punct['punct']
+
+    syllableSize=syllables_en.count(word)
+
+    synsets = wn.synsets(word)
+    shuffle(synsets)
+    #print word,"synset:",synsets
+
+
+    replacement_candidates = []
+
+    for syns in synsets:
+
+        lemmas =  syns.lemma_names
+        ## # ##print "LEMMAS:",lemmas
+        ## # ##print "hypernyms:",syns.hypernyms()
+        ## # ##print "hyponyms:",syns.hyponyms()
+        ## # ##print "holonyms:",syns.member_holonyms()
+        ## # print syns,"antonyms:",syns.lemmas[0].antonyms()
+        
+        for w in lemmas:
+            replacement_candidates.append(w)
+
+        for w in syns.hyponyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        # for w in syns.hypernyms():
+        #     replacement_candidates.append(w.name.split(".")[0])
+
+        # for w in syns.member_holonyms():
+        #     replacement_candidates.append(w.name.split(".")[0])
+
+        # for w in syns.member_meronyms():
+        #     replacement_candidates.append(w.name.split(".")[0])
+
+        # for w in syns.member_synonyms():
+        #     replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.lemmas[0].antonyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        ## # ##print "replacement_candidates:",replacement_candidates
+        shuffle(replacement_candidates)
+
+        for wordstring in replacement_candidates:
+            #find an approximate matchb
+            #print "wordstring in name:",wordstring
+            if (approx_equal(wordstring,word) and wordstring.lower() != word.lower() and len(wordstring)>len(word)):
+                #print "SYNSET approx_equal:",word,wordstring
+                return wordstring+punct
+            #len same, word not
+            elif(len(wordstring) == len(word) and wordstring.lower() != word.lower()):
+                #print "SYNSET len same, word not:",word,wordstring
+                return wordstring+punct
+            elif word.lower() not in wordstring.lower() and wordstring.lower() not in word.lower():
+                #print word, "SYNSET not in:",wordstring+punct
+                return wordstring+punct
+
+            # elif(syllables_en.count(wordstring) == syllableSize and wordstring.lower() != word.lower() and len(word)):
+            #     ##print "SYNSET syllable same, word not:",word,wordstring
+            #     return wordstring+punct
+
+
+        # nothing found yet, look inside ...
+        #s = wordnet.synsets(word)             
+        replacement_candidates = []
+        for w in syns.attributes():
+            ##print "attributes :",w.name.split(".")[0]
+            replacement_candidates.append(w.name.split(".")[0])
+        for w in syns.similar_tos():
+            ##print "similar_tos:",w.name.split(".")[0]
+            replacement_candidates.append(w.name.split(".")[0])
+        for w in syns.substance_meronyms():
+            ##print "substance_meronyms :",w.name.split(".")[0]
+            replacement_candidates.append(w.name.split(".")[0])
+        for w in syns.entailments():
+            ##print "entailments :",w.name.split(".")[0]
+            replacement_candidates.append(w.name.split(".")[0])
+        # print word,"nothing found yet, look inside ...",replacement_candidates
+
+        replacement_candidates.sort(key = len)
+        for wordstring in replacement_candidates:
+            #print "trying :",wordstring
+            if wordstring not in stopwords.words('english') and wordstring not in personal_pronouns and wordstring not in word:
+                ##print "SYNSET final choice:",word,wordstring
+                return wordstring+punct
+
+
+    ##print "SYNSET escape case, return original:",word
+    return    wordstring
+
+
+
+
+
+
+#########################
+# HELPER FUNCTIONs      #
+#########################
+
+def pluralize_singularize(word,prev_word):
+    if "thing" in word:
+        print word,prev_word
+    if "these" in prev_word:
+        return pluralize(word)
+    elif "this" in prev_word:
+        return singularize(word)
+    else:
+        return word
+
+# TEST FOR APPROX. EQUIVALENCE
+def approx_equal(self, other, delta=4):
+    count = abs(len(self) - len(other))
+    for c,k in zip(self, other):
+        count += c != k
+    return count <= delta
+
+
+#Check whether 'str' contains ANY punctuation
+def containsAnyPunct(str):
+    punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~_'''
+    return 1 in [c in str for c in punctuations]
+
+def isAllPunct(s):
+    return all(c in string.punctuation for c in s)
+
+def hasNumbers(inputString):
+    return any(char.isdigit() for char in inputString)
+
+# replace digits with other digits...
+def replaceNumbers(inputString):
+    outputString =''
+    for char in inputString:
+        if char.isdigit():
+            char = random.randrange(9)
+            ## # ##print "DIGIT",char
+        outputString +=str(char)
+    return outputString
+
+# STRIP _
+def strip_underscore(word):
+    # define punctuations
+    punctuations = '''_'''
+    my_str = word
+
+    # remove _ from the string
+    no_punct = ""
+    for char in my_str:
+        if char not in punctuations:
+            ### # ##print "CHAR:", char
+            no_punct = no_punct + char
+        else:
+            no_punct = no_punct+' '
+
+    ### # ##print "word:",no_punct,"punct:", punct
+    return no_punct
+
+
+
+
