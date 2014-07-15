@@ -57,7 +57,7 @@ import collections
 
 ##### CHANGE THIS TO "6" OR "60" FOR TESTING or "ALL" for full corpus #########
 
-type_of_run="6"
+type_of_run="ALL"
 
 ######################################################
 
@@ -101,19 +101,21 @@ import import_utilities
 #
 
 master_list =[]
-#FULL   
-master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem_stress_list','poem_stress_list_no_punct','chars_per_line'])
+# FULL NO POEM  
+#master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem_stress_list','poem_stress_list_no_punct','chars_per_line'])
 
+# FULL NO POEM  & no  poem_stress_list_no_punct
+master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','chars_per_line'])
 
 # PARTIAL master_list.append(["id","author",'title','date_of_birth','date_of_death','date_of_publication','num_of_words','num_of_non_empty_lines','num_of_verses','avg_word_len','avg_line_len','avg_lines_per_verse','longest_line','words_per_line','largest_word','poem_stress_list','poem_stress_list_no_punct','chars_per_line'])
 
 # ADD stopwords (to measure the occurence of stopwords, an effective author identification tool)
 
-print len(import_utilities.stopwords_ls),"BEFORE len (master_list) = ", len(master_list[0])
+#print len(import_utilities.stopwords_ls),"BEFORE len (master_list) = ", len(master_list[0])
 for s in import_utilities.stopwords_ls:
     master_list[0].append(s)
 
-print "AFTER len (master_list) = ", len(master_list[0])
+#print "AFTER len (master_list) = ", len(master_list[0])
 
 #
 # Load JSON
@@ -148,7 +150,7 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
 
             if val =='author':
                 author = data[val.encode('utf-8')].encode('utf-8')
-                print author
+                #`print author
             elif val == 'title':
                 title = data[val.encode('utf-8')].encode('utf-8')
             elif val == 'poet_DOB':
@@ -180,7 +182,7 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
             if date_of_birth.isdigit():
                 if int(date_of_birth)>0:
                     date_of_publication = int(date_of_birth)+25
-                    print "CHANGE date_of_publication:",date_of_publication
+                    #print "CHANGE date_of_publication:",date_of_publication
                     
             
 
@@ -228,8 +230,8 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
         for s in import_utilities.stopwords_ls:
             stops_dict[s]=0
             sc+=1
-            print sc,"init",s,stops_dict[s]
-        print len(import_utilities.stopwords_ls),"len(stops_dict)",len(stops_dict)
+            #print sc,"init",s,stops_dict[s]
+        #print len(import_utilities.stopwords_ls),"len(stops_dict)",len(stops_dict)
 
         for line in pf:
 
@@ -395,9 +397,9 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
             # BASIC FEATURES
             #
 
-            print "id: ",id
-            # print 'author:',author
-            # print 'title:',title
+            print "\nid: ",id,cnt
+            print 'author:',author
+            print 'title:',title
             # print 'date_of_birth:', date_of_birth
             # print 'date_of_death:', date_of_death
             # print 'date_of_publication:',date_of_publication
@@ -426,7 +428,7 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
             # print "largest_word length=" , len(largest_word)
 
             # print "poem_stress_list: ", poem_stress_list
-            # print "poem_stress_list_no_punct: ", poem_stress_list_no_punct
+            #print "poem_stress_list_no_punct: ", poem_stress_list_no_punct
 
 
 
@@ -437,22 +439,24 @@ with open(DATA_DIR+READ_JSON_FILE, 'r') as infh:
             #
 
 
-            # FULL     
-            master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem_stress_list,poem_stress_list_no_punct,chars_per_line])
+            # FULL NO POEM   
+            #master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem_stress_list,poem_stress_list_no_punct,chars_per_line])
 
+            # FULL NO POEM  & no  poem_stress_list_no_punct
+
+            if "Barnard" not in author and "175184" != id:
+                master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,chars_per_line])
 
             #master_list.append([id,author,title,date_of_birth,date_of_death,date_of_publication,num_of_words,num_of_non_empty_lines,num_of_verses,avg_word_len,avg_line_len,avg_lines_per_verse,longest_line,words_per_line,largest_word,poem_stress_list,poem_stress_list_no_punct,chars_per_line])
 
-            # Stop words
-
-            print len(stops_dict),"BEFORE len (master_list) = ", len(master_list[-1])
+            ####################
+            # APPEND Stop words
+            ####################
             
-            sorted_sd =collections.OrderedDict(sorted(stops_dict.items()))
-            for s in sorted_sd:
-                master_list[-1].append(sorted_sd[s])
-                print "APPEND",s,sorted_sd[s],len(master_list[-1])
-
-            print len(sorted_sd), "AFTER len (master_list) = ", len(master_list[-1])
+                sorted_sd =collections.OrderedDict(sorted(stops_dict.items()))
+                for s in sorted_sd:
+                    master_list[-1].append(sorted_sd[s.encode('utf-8')])
+                #print "APPEND",s,sorted_sd[s],len(master_list[-1])
 
             # # since labels might have been added
             # if len(master_list[0])>len(master_list[-1]):
@@ -525,39 +529,63 @@ pf.close()
 # (holy fuckin shit did this simple traverse ever take me forever: 1 day approx.)
 # PUT NUMERIC VALUES INTO THEIR OWN COLUMNS in a dictionary with keys so it can be written as JSON then imported to pandas
 # #
+jcnt=0
 master_list_of_dictionaries=[]
 for ml in master_list:
     tmp_dict={}
-    print len(ml)
+    tmp_list=[]
+    print len(ml),master_list.index(ml)
     if master_list.index(ml)!=0:
         for k,v in enumerate(ml):
             key =master_list[0][k]
             #if key != v:
-            print k,key,v
+            #print k,key,v
             tmp_dict[key.replace("'", '"')]= v
             if "words_per_line" in key:
                 for i,wpl in enumerate(v):
-                    tmp_dict["words_per_line_"+str(i)]=float(wpl)
+                    tmp_dict["words_per_line_"+str(i).encode('utf-8')]=float(wpl)
             elif "chars_per_line" in key:
                 for i,wpl in enumerate(v):
-                    tmp_dict["chars_avg_per_line_"+str(i)]=float(wpl)
+                    tmp_dict["chars_avg_per_line_"+str(i).encode('utf-8')]=float(wpl)
             elif "poem_stress_list_no_punct" in key:
                 for i,wpl in enumerate(v):
                     #print "'"+wpl+"'",wpl.rstrip().lstrip().isdigit()
                     if len(wpl)==0:
                         print "zero"
-                        wpl="0"
-                    tmp_dict["stress__on_line_"+str(i)]=float(wpl)
+                        wpl=0
+                    tmp_dict["stress__on_line_"+str(i).encode('utf-8')]=float(wpl)
             elif "largest_word" in key:
                 tmp_dict["largest_word_length"]=len(key)
     
-        ##################
-        # pre-STORAGE JSON  #
-        ##################
-        master_list_of_dictionaries.append(tmp_dict)
-        #json.dump(tmp_dict, f_json)
+    ##################
+    # pre-STORAGE JSON  #
+    ##################
+
+    tmp_list.append(tmp_dict)
+    master_list_of_dictionaries.append(tmp_dict)
+    # try:
+    #     json.dump(tmp_dict, f_json)
+    #     jcnt+=1
+    #     master_list_of_dictionaries.append(tmp_dict)
+    # except UnicodeDecodeError:
+    #     print "UnicodeDecodeError",id,author,title
+    #     error_str+=id+" ~ "
+    #     print len(master_list), master_list.index(ml)
+    #     continue
+
+    # CANNOT because json load needs dict wrapped in list
+    # error_str=""
+    # try:
+    #     json.dump(tmp_dict, f_json)
+    #     jcnt+=1
+    # except UnicodeDecodeError:
+    #     print "UnicodeDecodeError",id,author,title
+    #     error_str+=id+" ~ "
+    #     print len(master_list), master_list.index(ml)
+    #     continue
+
         #json.dump(',',f_json)
-           
+        
 
 ################# 
 #  write csv    #
@@ -573,18 +601,27 @@ for ml in master_list:
 #############################
 #  DUMP TO json             #
 #############################   
+error_str=""
+# 
+# try:
+#     json.dump(master_list_of_dictionaries, f_json)
+# except UnicodeDecodeError:
+#     print "UnicodeDecodeError",id,author,title
+#     error_str+=id+" ~ "
+#     pass
 
-json.dump(master_list_of_dictionaries, f_json)
-#json.dump(master_list, f_json)    
+json.dump(master_list_of_dictionaries, f_json)    
 f_json.close(); 
 
+print error_str
 #
 # test panda input 
 #
 
-# print cnt,"poems processed"
-# print no_lines,"poems with no lines"
-# print "binarized CSV file created at:",csv_PATH
+print cnt,"poems processed"
+print no_lines,"poems with no lines"
+print jcnt,"poems in json",WRITE_JSON_PATH
+#print "binarized CSV file created at:",csv_PATH
 
 # df = pd.read_csv(csv_PATH)
 # print "\nDATAFRAME.head():\n",df.head(),"\n"
