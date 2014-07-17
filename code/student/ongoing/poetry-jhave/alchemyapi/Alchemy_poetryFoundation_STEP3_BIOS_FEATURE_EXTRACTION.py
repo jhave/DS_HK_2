@@ -2,14 +2,15 @@
 
 
 import json
-import os,sys,random
+import os,sys,random, datetime
 
 import import_utilities
 
 from pprint import pprint
 import re
+import codecs
 
-type_of_run="6"
+type_of_run="ALL"
 
 ######################################################
 
@@ -33,7 +34,7 @@ random.shuffle(json_files)
 json_files_shuffled = json_files
 
 # list of other titles as source for making new titles
-titles_ls=open(DATA_DIR+ "ALL_poetryFoundation_BIO_ALL_TITLES.txt",'r').read().split(" !~*~! ")
+titles_ls=codecs.open(DATA_DIR+ "ALL_poetryFoundation_BIO_ALL_TITLES.txt",'r',encoding='utf-8').read().split(" !~*~! ")
 
 keywords_dict = {}
 concepts_dict = {}
@@ -51,7 +52,7 @@ num_of_files = 0
 #   READ DIRECTORY    #
 #                                                 #
 #################################################
-def extractFeatures(READ_PATH,file_type):
+def extractFeaturesAndWriteBio(READ_PATH,file_type):
     
     cnt=0
     
@@ -62,7 +63,7 @@ def extractFeatures(READ_PATH,file_type):
         for file in files:
             
             num_of_files = len(files)-1 # deduct the DS_store
-            print (num_of_files,'readDirectory',READ_PATH)
+            #print (num_of_files,'readDirectory',READ_PATH)
             
             if file_type in file  and 'readme' not in file:
 
@@ -72,11 +73,11 @@ def extractFeatures(READ_PATH,file_type):
                 filenames.append(id)
                 cnt+=1
 
-                print('')
-                print('')
-                print('OPENED:',id)
-                print('')
-                print('')
+                # print('')
+                # print('')
+                # print('OPENED:',id)
+                # print('')
+                # print('')
 
                 bio_replaced = ""
                 author=""
@@ -87,10 +88,16 @@ def extractFeatures(READ_PATH,file_type):
                 ##########################
 
                 txt_fn_path = DATA_DIR + READ_TXT_PATH + id.split("_")[1]+".txt"
-                print "txt_fn_path:",txt_fn_path
+                #print "txt_fn_path:",txt_fn_path
 
                 txt_data=open(txt_fn_path).read()
+
+                # http://blog.webforefront.com/archives/2011/02/python_ascii_co.html
+                # txt_data.decode('ISO-8859-2') .decode('utf-8')
+                # unicode(txt_data)
+
                 author=txt_data.split("****!****")[0].strip(' \t\n\r')
+                
                 titles=txt_data.split("****!****")[1].strip(' \t\n\r').split(" !~*~! ")
                 titles[-1]  = titles[-1].strip(" !~*~!")
                 bio=txt_data.split("****!****")[2].strip(' \t\n\r')
@@ -115,11 +122,11 @@ def extractFeatures(READ_PATH,file_type):
                 #######################
                 # replace BOOK TITLES
                 #######################
-                print "TITLES"
+                #print "TITLES"
                 for t in titles:
                     if t in bio_replaced and t != ".":
-                        print t
-                        bio_replaced = bio_replaced.replace(t,getNewTitle(t))
+                        #print t#.decode('utf-8')
+                        bio_replaced = bio_replaced.replace(t,getNewTitle(t).encode('utf-8'))
 
                 #######################
                 # replace She with He
@@ -128,7 +135,17 @@ def extractFeatures(READ_PATH,file_type):
                 bio_replaced = bio_replaced.replace(" she"," he ")
                 bio_replaced = bio_replaced.replace("Her ","His ")
                 bio_replaced = bio_replaced.replace(" her"," his")
-                                            
+                bio_replaced = bio_replaced.replace(" husband"," wife")
+
+                ############################
+                # replace years with another
+                ############################
+                for w1 in bio_replaced.split("("):
+                    for w2 in w1.split(")"):
+                        if w2 is not None and w2.isdigit():
+                            new_num = random.randint(int(w2)-5,int(w2)+5)
+                            #print "REPLACING #:",w2,new_num
+                            bio_replaced = bio_replaced.replace(w2,str(new_num))                            
                                            
 
                 #################
@@ -136,49 +153,59 @@ def extractFeatures(READ_PATH,file_type):
                 #################
                 response = loadJSONfile(READ_JSON_PATH+"poetryFoundation_"+id.split("_")[1]+"_Alchemy_JSON.txt")
 
+                if response.get('entities') is not None:
+                    for idx,entity in enumerate(response['entities']):
 
-                for idx,entity in enumerate(response['entities']):
+                        #print idx
+                        ce = entity['text'].replace("0xc2"," ")
+                        ce = ce.replace("0xe2","'")
+                        ce = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, ce)
+                        # print "entity['text']",entity['text'].encode('utf-8')
 
-                    #print idx
-                    ce = entity['text'].replace("0xc2"," ")
-                    ce = ce.replace("0xe2","'")
-                    ce = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, ce)
-                    # print "entity['text']",entity['text'].encode('utf-8')
+                        #print bio_replaced
+                        #print ce.encode('utf-8')
+                        ce = ce.encode('utf-8')
 
-                    #print bio_replaced
-                    #print ce.encode('utf-8')
-                    ce = ce.encode('utf-8')
+                        try:
+                            content = ce.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
+                        except UnicodeDecodeError:
+                            "AAAARGGGGHHH!!!!"
+                        
 
-                    try:
-                        content = ce.decode('utf-8').encode('ascii', 'xmlcharrefreplace')
-                    except UnicodeDecodeError:
-                        "AAAARGGGGHHH!!!!"
+                        if content in bio_replaced:
+                                               
+                            ################################################
+                            # Replace similar entities from other JSON     #
+                            ################################################
+                            replacement_entity = findSimilarEntityinRandomJSON(content,entity['type'])
+
+                            #replacement_entity.decode('utf-8')
+                            #unicode(replacement_entity)
+                            cr = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, replacement_entity)
+
+                            bio_replaced = bio_replaced.replace(content,replacement_entity)
+            
                     
+                if len(response) >0:
+                    ALL_bios +="\n\n~\n\n"+bio_replaced#.encode('utf-8','ignore')
+                    # print "\n\n",author
+                    print "based on:", author
+                    print "\n~~~~~~\n\n", bio_replaced
+                    # print "\n\nbio",bio
 
-                    if content in bio_replaced:
-                                           
-                        ################################################
-                        # Replace similar entities from other JSON     #
-                        ################################################
-                        replacement_entity = findSimilarEntityinRandomJSON(content,entity['type'])
-                        bio_replaced = bio_replaced.replace(content.encode('utf-8'),replacement_entity.encode('utf-8'))
-                
-                
+                    txt_fn = type_of_run+"_poetryFoundation_generatedBIOs.txt"
 
+                    # WRITE_BIO_PATH = DATA_DIR+"generated"+datetime.datetime.now().strftime('%Y-%m-%d_%H')+"/"
+                    # if not os.path.exists(WRITE_BIO_PATH):
+                    #         os.makedirs(WRITE_BIO_PATH)
 
-
-
-
-
-
-
-
-                ALL_bios +="\n\n~\n\n"+bio_replaced
-                
-
-                print "\n\n**** ",author,"\n\nbio_replaced:",bio_replaced,"\n\nbio",bio
-
-
+                    # txt_fn_path = WRITE_BIO_PATH+txt_fn
+                    # f_txt=open(txt_fn_path,'w')
+                    # f_txt.write(bio_replaced.encode('utf-8'))       
+                    # f_txt.close();   
+                    # print "\nTXT file created at:",txt_fn_path
+                else:
+                    "~~~~~~~~~~~~~~~~!!!!!!!!!! EMPTY response:", author
 
 
 
@@ -190,8 +217,16 @@ def extractFeatures(READ_PATH,file_type):
 #################
 
 def getNewTitle(old_title):
+    new_title=""
+    total_str = random.choice(titles_ls)+ " "+random.choice(titles_ls)+ " "+random.choice(titles_ls)
+    total = total_str.split(' ')
+    random.shuffle(total)
+    for w in total:
+        if total.index(w)%3:
+            new_title += w +" " 
 
-    return random.choice(titles_ls)
+    #print old_title,"::", new_title
+    return new_title
 
 
 
@@ -202,7 +237,7 @@ def getNewTitle(old_title):
 def loadJSONfile(fn):
 
     id=fn.split(".")[0]
-    print "Inside loadJSONfile id=",id
+    #print "Inside loadJSONfile id=",id
 
     json_data=open(fn)
     response = json.load(json_data)
@@ -210,68 +245,16 @@ def loadJSONfile(fn):
     #pprint(response)
     json_data.close()   
 
-    # if response['status'] == 'OK': 
-
-    #     print('## Response Object ##')
-    #     print(json.dumps(response, indent=4))
-
-       
-    #     print('')
-
-    #     # print('## Keywords ##')
-    #     for keyword in response['keywords']:
-    #         print(keyword['text'], ' : ', keyword['relevance'])
-    #         #keywords_dict [keyword['text']] = keyword['relevance']
-    #     # print('')
-
-    #     # print('## Concepts ##')
-    #     for concept in response['concepts']:
-    #         print(concept['text'], ' : ', concept['relevance'])
-    #         #concepts_dict [concept['text']] = concept['relevance']
-    #     # print('')
-
-    #     # print('## Entities ##')
-    #     # for idx,entity in enumerate(response['entities']):
-    #     #     #entities_dict [entity['type']] = concept['relevance']
-    #     #     # entities_dicti[id.split("_")[1]+"_"+str(idx)] = { 'type' : entity['type'] , 'text':entity['text'] , 'relevance': entity['relevance'] }
-
-    #     #     #print(id.split("_")[1]+"_"+str(idx),
-
-    #     #     print (entity['type'], ' : ', entity['text'], ', ', entity['relevance'])
-    #     # print(' ')
-
-    # else:
-    #     print('Error in combined call: ', response['statusInfo'])
-
-    # if response['status'] == 'OK':
-    #     print('## Object ##')
-    #     #print(json.dumps(response, indent=4))
-
-    #     print('')
-    #     print('## Relations ##')
-    #     for relation in response['relations']:
-    #         if 'subject' in relation:
-    #             print('Subject: ', relation['subject']['text'].encode('utf-8'))
-
-    #         if 'action' in relation:
-    #             print('Action: ', relation['action']['text'].encode('utf-8'))
-
-    #         if 'object' in relation:
-    #             print('Object: ', relation['object']['text'].encode('utf-8'))
-
-    #         print('')
-    # else:
-    #     print('Error in relation extaction call: ', response['statusInfo'])
-
-
     return response
 
-   
+#############################
+# find Similare entities    #
+#############################
 def findSimilarEntityinRandomJSON(orig,typ):
 
     not_found=True
     cnt =-1
-    random.shuffle(json_files)
+    
 
     #print "ENTERING findSimilarEntityinRandomJSON",orig,typ
 
@@ -280,23 +263,31 @@ def findSimilarEntityinRandomJSON(orig,typ):
         cnt+=1
         if cnt>len(json_files)-1:
             cnt=0
+            random.shuffle(json_files)
             #print "EXITING find Similar Without FINDING"
             break
 
         fn = READ_JSON_PATH+json_files[cnt]
-        #print "findSimilarEntityinRandomJSON in fn=",fn
+        
 
         json_data=open(fn)
         response = json.load(json_data)
         json_data.close() 
 
-        random.shuffle(response['entities'])
-        for idx,entity in enumerate(response['entities']):
-            if orig.encode('utf-8') not in entity['text'].encode('utf-8')  and entity['type']==typ:
-                print orig.encode('utf-8') ,"::",entity['text'].encode('utf-8')
-                return entity['text'] 
+        #print "findSimilarEntityinRandomJSON in fn=",fn,len(response)
+        
+        if response.get('entities') is not None:
+            random.shuffle(response['entities'])
+            for idx,entity in enumerate(response['entities']):
+                if orig.encode('utf-8') not in entity['text'].encode('utf-8')  and entity['type']==typ:
+                    #print orig.encode('utf-8') ,"::",entity['text'].encode('utf-8')
 
-    return "**** DID NOT FIND"+typ+" ****"
+                    ce = re.sub('(' + '|'.join(import_utilities.chars.keys()) + ')', import_utilities.replace_chars, entity['text'])
+                    return ce.encode('utf-8')
+        else:
+            print "entities response empty?",random.shuffle(json_files)
+
+    return "**** DID NOT FIND ****"
 
 
 
@@ -316,16 +307,13 @@ def GenerateBio():
     {His works include, He is the author of} {find a book title, mutate it}{(range birthyear+16 to currentyear+1)}. He has {published, written, released, produced, created} {random number range 1-10} [books, novels, collections, chapbooks, novellas, essays]{among them, some, } are {comma seperated list of other book titles}. 
     {Affiliations:, His poems have appeared in, Contributions can be found in,}  {comma-seperated list of Entities:PrintMedia}
 
+
+    STRATEGY
+
+
     """
 
 
-
-
-
-#   &  ...
-#############################
-# STASH THE DATA           #
-#############################
 
 
 
@@ -333,17 +321,19 @@ def GenerateBio():
 ##############################
 #    READ DIRECTORY          #
 ##############################
-extractFeatures(READ_JSON_PATH,"txt")
-
-"""
+extractFeaturesAndWriteBio(READ_JSON_PATH,"txt")
 
 
-bio_replaced: James Doyle    
-                        Jhave was born in Durham, Colorado, and grew up in Fort Collins, Durham, and Colorado, Wisconsin. He did graduate work in philosophy at the University of Wisconsin and earned an MFA from the Kennedy Center at Durham. Jhave was the daughter of violinists, and his early exposure to music has had a profound affect on his work, which ranges in genre from poetry to novels to short fiction to memoir to criticism. In an interview with Kelly Cherry, Jhave noted that “musical dynamics, phrasing, pitch, tone, texture, orchestration The Psalms of David Imitated in the Language of the New Testament. provide inspiration, and sometimes a model, for a poet, as do the lives of some composers.”   Jhave is the author of more than 20 books and chapbooks of writing. His collections of poetry include The Prince’s Progress and Other Poems(1980), Paradise & Method: Poetics & Praxis(1993), The New Life(1997), Philip Larkin.(2002), (1997),(2007), and This Lamentable City(2009). His works of fiction include  London Review of Books(1974); Morning Run(1983); Poche Osservazioni(1999), which won the Dictionary of Literary Biography Award for Short Fiction; Asian American Poetry: The Next Generation (2003); and Waves(2010). An accomplished Evjue-Bascom Professor Emerita of nonfiction, Jhave has also published memoirs, including Daisy Miller(1991), and essay collections, such as Beginning to Heal: A First Book for Men and Women Who Were Sexually Abused as Children  (2009). He has also published two translations of ancient Greek drama.   The recipient of numerous honors and awards, Jhave was named the poet laureate of Wisconsin in 2010. He has received fellowships from the John the Baptist, the John the Baptist for the Arts, the Penn State University, and New York City. He taught at the University of Wisconsin–Madison for more than 20 years. He retired in 1999 but still holds the positions of the assistant professor and the Director’s Visitor in the Humanities. The inaugural recipient of the Hanes Poetry Prize and the Kennedy Center, Jhave was a Director’s Visitor at the Duke University Press at Greensboro in 2010. He lives on a small farm in Wisconsin with his husband, the fiction Evjue-Bascom Professor Emerita Gayle Danley.  
 
-bio Meg Theno    
-                        Kelly Cherry was born in Baton Rouge, Louisiana, and grew up in Ithaca, New York, and Chesterfield County, Virginia. She did graduate work in philosophy at the University of Virginia and earned an MFA from the University of North Carolina at Greensboro. Cherry was the daughter of violinists, and her early exposure to music has had a profound affect on her work, which ranges in genre from poetry to novels to short fiction to memoir to criticism. In an interview with Kaite Hillenbrand, Cherry noted that “musical dynamics, phrasing, pitch, tone, texture, orchestration et al. provide inspiration, and sometimes a model, for a poet, as do the lives of some composers.”   Cherry is the author of more than 20 books and chapbooks of writing. Her collections of poetry include Songs for a Soviet Composer (1980), God’s Loud Hand (1993), Death and Transfiguration (1997), Rising Venus (2002), Hazard and Prospect: New and Selected Poems (2007), and The Retreats of Thought: Poems (2009). Her works of fiction include Sick and Full of Burning (1974); In the Wink of an Eye (1983); The Society of Friends (1999), which won the Dictionary of Literary Biography Award for Short Fiction; We Can Still Be Friends (2003); and The Woman Who (2010). An accomplished writer of nonfiction, Cherry has also published memoirs, including The Exiled Heart (1991), and essay collections, such as Girl in a Library: On Women Writers & the Writing Life (2009). She has also published two translations of ancient Greek drama.   The recipient of numerous honors and awards, Cherry was named the poet laureate of Virginia in 2010. She has received fellowships from the Rockefeller Foundation, the National Endowment for the Arts, the Ragdale Foundation, and Yaddo. She taught at the University of Wisconsin–Madison for more than 20 years. She retired in 1999 but still holds the positions of the Eudora Welty Professor Emerita of English and the Evjue-Bascom Professor Emerita in the Humanities. The inaugural recipient of the Hanes Poetry Prize and the Ellen Anderson Award, Cherry was a Director’s Visitor at the Institute for Advanced Study at Princeton in 2010. She lives on a small farm in Virginia with her husband, the fiction writer Burke Davis III.
+# #   &  ...
+# #############################
+# # STASH THE DATA           #
+# #############################
+txt_fn = type_of_run+"_"+datetime.datetime.now().strftime('%Y-%m-%d_%H')+"_poetryFoundation_generatedBIOs.txt"
+txt_fn_path = DATA_DIR+"generated/"+txt_fn
+f_txt=open(txt_fn_path,'w')
+f_txt.write(ALL_bios)       
+f_txt.close();   
+print "\nTXT file created at:",txt_fn_path
 
-
-"""
 
