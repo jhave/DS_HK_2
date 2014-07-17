@@ -10,6 +10,7 @@ Parse the html using BeautifulSoup to extract bio and author
 
 2.
 Write to a single txt file for later import and incorporation into pipeline
+
 """
 
 import re
@@ -66,11 +67,12 @@ except Exception, e:
 html_cnt=0
 txt_cnt=0
 everything_string=""
+ALL_titles=""
 
 for root, subFolders, files in os.walk(DATA_DIR+HTML_DIR):
 
         for filename in files:
-            
+
             filePath = os.path.join(root, filename)
             id = filename.split(".")[0]
 
@@ -78,6 +80,7 @@ for root, subFolders, files in os.walk(DATA_DIR+HTML_DIR):
 
             author = ""
             bio = ""
+            titles = ""
 
             print "\n"+id
 
@@ -99,25 +102,41 @@ for root, subFolders, files in os.walk(DATA_DIR+HTML_DIR):
 
                     print "author:",author.encode('utf-8')
 
+                    for em in bio.findAll('em'):
+                        #print em
+                        ALL_titles  += em.text +" !~*~! "
+                        titles  += em.text +" !~*~! "
+                        # print ALL_titles
 
                 # collection
-                everything_string += author.encode('utf-8')+"\n****!****\n"+bio.text.encode('utf-8')+"\n\n~~~~!~~~\n"
+                everything_string += author.encode('utf-8')+"\n****!****\n"+titles.encode('utf-8')+"\n****!****\n"+bio.text.encode('utf-8')+"\n\n~~~~!~~~\n"
 
                 # bio seperate
-                f_txt=open(DATA_DIR+WRITE_TXT_DIR+id+".txt",'a')
-                f_txt.write(author.encode('utf-8')+"\n****!****\n"+bio.text.encode('utf-8'))       
+                f_txt=open(DATA_DIR+WRITE_TXT_DIR+id+".txt",'w')
+                f_txt.write(author.encode('utf-8')+"\n****!****\n"+titles.encode('utf-8')+"\n****!****\n"+bio.text.encode('utf-8'))       
                 f_txt.close();   
-                print WRITE_TXT_DIR+id+".txt"
+                print "WRITING TO:",WRITE_TXT_DIR+id+".txt"
+                #print author.encode('utf-8')+"\n****!****\n"+titles.encode('utf-8')+"\n****!****\n"+bio.text.encode('utf-8')
 
 
 # txt file for all scraped bios
-f_txt=open(txt_fn_path,'a')
+f_txt=open(txt_fn_path,'w')
 f_txt.write(everything_string)       
 f_txt.close();    
+print "\nTXT file created at:",txt_fn_path
+
+txt_fn = type_of_run+"_poetryFoundation_BIO_ALL_TITLES.txt"
+txt_fn_path = DATA_DIR+txt_fn
+f_txt=open(txt_fn_path,'w')
+f_txt.write(ALL_titles.encode('utf-8'))       
+f_txt.close();   
+print "\nTXT file created at:",txt_fn_path
 
 #print everything_string
 
 print "\n",html_cnt,"html files processed"
 print txt_cnt,"poems sent to txt files"
-print "\nTXT file created at:",txt_fn_path
+
+print ALL_titles.encode('utf-8')
+
 
