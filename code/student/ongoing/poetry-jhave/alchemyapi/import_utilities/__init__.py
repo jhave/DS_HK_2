@@ -290,10 +290,10 @@ chars = {
     '\xc2\x84' : ',,',       # High code double comma
     '\xc2\x85' : '...',      # Tripple dot
     '\xc2\x88' : '^',        # High carat
-    '\xc2\xp91' : '\x27',     # Forward single quote
+    '\xc2\x91' : '\x27',     # Forward single quote
     '\xc2\x92' : '\x27',     # Reverse single quote
     '\xc2\x93' : '\x22',     # Forward double quote
-    '\xc2\x94' : '\x22',     # Reverse double quote 
+    '\xc2\x94' : '\x22',     # Reverse double quote
     '\xc2\x95' : ' ',
     '\xc2\x96' : '-',        # High hyphen
     '\xc2\x97' : '--',       # Double hyphen
@@ -309,9 +309,8 @@ chars = {
     '\xcc\xa8' : '',         # modifier - under curve
     '\xcc\xb1' : '' ,        # modifier - under line
     '\xe2\x80\x99': '\'',   # apostrophe
-    '\xe2\x80\x94': '--',    # em dash
-    '\xc2\xa0A': ' ',        #&nbsp
-    '0xe2' : "'"
+    '\xe2\x80\x94': '--'    # em dash \xe2\x80\x99
+    #'\xe2':"\'"
 
 }
 
@@ -854,5 +853,54 @@ def strip_underscore(word):
     return no_punct
 
 
+# 
+def isGarbageInWord_bool(word):
+    for l in word.split():
+        for ch in chars:
+            if l==ch:
+                return True
+    return False
 
+
+def moveBeginAndEndPunctuationFromStrToString(source,destination):
+
+    my_str = source
+    replacement=destination
+
+    punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~_'''
+
+    # remove punctuations from the string
+    no_punct = ""
+    punct=""
+    position=""
+    punct_bool=False
+    cnt=0
+    for char in my_str:
+        if char not in punctuations:
+            ### # ##print "CHAR:", char
+            no_punct = no_punct + char
+        else:
+            punct_bool=True
+            punct += char
+            position += str(cnt)+"~"
+        cnt+=1
+
+
+    if len(punct)>0:
+        #print position
+        posi=position.split("~")
+        punc=list(punct)
+        for p in posi:
+            if len(p)>0:
+                if int(p)==0:
+                    replacement = punc[posi.index(p)] + replacement
+                # get period before quotation marks
+                if int(p)==(len(my_str)-2) and punc[posi.index(p)] ==".":
+                    replacement = replacement + punc[posi.index(p)] 
+                if int(p)==(len(my_str)-1):
+                    if "'" not in punc[posi.index(p)]:
+                        replacement = replacement + punc[posi.index(p)] 
+    
+    #print source,replacement              
+    return replacement  
 

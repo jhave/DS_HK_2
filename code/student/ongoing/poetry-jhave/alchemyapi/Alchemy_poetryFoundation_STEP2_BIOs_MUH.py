@@ -101,7 +101,7 @@ def readDirectory(PATH,file_type):
 
                 cnt+=1
 
-                if cnt>781:
+                if cnt>672 and cnt<781:
 
                     # READ txt file
                     pf = open(subdir+file, 'r')
