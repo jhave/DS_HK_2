@@ -103,7 +103,8 @@ def readDirectory(PATH,file_type):
 
                 # DAILY TRANSACTION LIMIT FOR ACADEMIC LICENSE IS 25,000 calls,
                 # 66063 items at 4 transactions each
-                if cnt>66061 and cnt<11000:
+                # July 22nd : up to 247632 done.....
+                if cnt>6061 and cnt<11000:
 
                     # READ txt file
                     pf = open(subdir+file, 'r')
