@@ -92,13 +92,17 @@ entities_dicti = {}
 relation_dict = {}
 
 filenames = []
-ALL_poems = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #949494; } .black { background: #121212; color: #949494; } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>" 
+
+ALL_poems_intro = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #949494; } .black { background: #121212; color: #949494; } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>." 
+ALL_poems=ALL_poems_intro
 bio=""
 
 num_of_files = 0
 cnt=0
 
-RESERVOIR=["Jha"]
+# preliminare weird seeds
+prelim_weird_seed="uncompacted, selfhood, seeth, rainbow,lexical, haloing, butterflies, terracotta, fountaining, Nico, pigtails, wanna, unhoused, stripteasing, cramful, washpan, limekiln, pinpricks, prisoned, sphered, gingham, incestuous, flax, circulation, teapots, jugular, viperish, bulldog,  fingertips, hubcaps, cowlick, waterbed, maxed, chaliced, textual,  steamshovels, splint,, trophied, jampotfuls, naw, highpoints,  pulsebeat, twerpy, foamline"
+RESERVOIR=[w for w in prelim_weird_seed.split(",")]
 
 #################################################
 #                                                 #
@@ -127,9 +131,9 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                 cnt+=1
 
                 # print('')
-                # print('')
-                # print('OPENED:',id)
-                # print('')
+                print('')
+                print('OPENED:',id)
+                print('')
                 # print('')
 
                 poem_replaced = ""
@@ -148,9 +152,9 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                 ##########################
 
                 txt_fn_path = DATA_DIR + READ_TXT_PATH + id.split("_")[1]+".txt"
-                #print "txt_fn_path:",txt_fn_path
+                print "txt_fn_path:",txt_fn_path
 
-                if os.path.isfile(txt_fn_path) and cnt>2160:
+                if os.path.isfile(txt_fn_path) and cnt>0:
                     txt_data=open(txt_fn_path).read()
 
                     # http://blog.webforefront.com/archives/2011/02/python_ascii_co.html
@@ -273,7 +277,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                         if len(line)>0 :
                             if "english" not in import_utilities.get_language(line):
                                 quit_language+=1
-                                #print "NOT english:",quit_language,line
+                                print "NOT english:",quit_language,line
                             else:
                                 quit_language-=1
 
@@ -321,7 +325,8 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                     similarterm=random.choice(import_utilities.heres)
                                 else:
                                     #print "WORD:",word_nopunct
-                                    similarterm = import_utilities.find_synset_word(word_nopunct)#(word.lstrip().rstrip())
+                                    if len(word_nopunct)>2:
+                                        similarterm = import_utilities.find_synset_word(word_nopunct)#(word.lstrip().rstrip())
 
                                 
                                 ############################################
@@ -333,11 +338,14 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 if similarterm == "ope":
                                     ##print "doth"
                                     similarterm = "does"
+                                if similarterm == "information technology":
+                                    ##print "doth"
+                                    similarterm = "it"
 
                                 #######################################                      
                                 # abbreviations for fucking states!   #
                                 #######################################
-                                if word_nopunct.upper() in import_utilities.state_abbrev and word_nopunct.lower() not in stopwords.words('english') :
+                                if word_nopunct.upper() in import_utilities.state_abbrev and word_nopunct.lower() not in stopwords.words('english') and "me," not in word:
                                     tmp = similarterm
                                     if word_nopunct == "oh": 
                                         similarterm = random.choice(import_utilities.exclaims)
@@ -417,14 +425,18 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 else:
                                     if len(hyp) <2 and "like" not in word_nopunct and import_utilities.singularize(word_nopunct) ==  import_utilities.singularize(replacement_word) and word_nopunct.lower() not in import_utilities.stopwords_ls:
 
-                                        if word_nopunct not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1: 
+                                        if word_nopunct not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
+                                            
+                                            #print "ADDING",word,"to reservoir"
                                             RESERVOIR.append(word)
-                                            #print "add to RESERVOIR: ",import_utilities.countPunctuation(word),word,"RESERVOIR:",RESERVOIR
-                                        replacement_word = random.choice(RESERVOIR)
+                                            
+                                            replacement_word = random.choice(RESERVOIR)
+                                            #print word_nopunct,"replaced from reservoir with", replacement_word
                                        # print "'"+word_nopunct+"'  vs RESERVOIR  replacement_word:",replacement_word #,"    new_line:",new_line
-                                if quit_language>1:
+                                if quit_language>1 and not word_nopunct.istitle():
                                     #print quit_language, "Probably foreign language: make a word salad in english"
                                     replacement_word = random.choice(RESERVOIR)
+                                    #print word_nopunct,"OTHER replaced from reservoir with", replacement_word
                                 
 
                                 # REPLACEMENT
@@ -482,11 +494,12 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                         HTML_poem += line+"<br>"
 
                     if len(response) >0 and len(id.split("_"))>1:
-                        ALL_poems +="<br><br>~~~~~~~~~~~~~~~~~~~~~~~~~~<br>[ A poem generated from template : <b>"+ author+"</b>, <i>"+ title +"</i> ]<br><br><b>"+new_title+"<br><br></b>"+HTML_poem
+                        # ALL_poems = ALL_poems_intro + " ".join(i for i in ALL_poems.split("</h2>.")[0:])+"<br><br>~~~~~~~~~~~~~~~~~~~~~~~~~~<br>[ A poem generated from template : <b>"+ author+"</b>, <i>"+ title +"</i> ]<br><br><b>"+new_title+"<br><br></b>"+HTML_poem
+                        ALL_poems += "<br><br>~~~~~~~~~~~~~~~~~~~~~~~~~~<br>[ A poem generated from template : <b>"+ author+"</b>, <i>"+ title +"</i> ]<br><br><b>"+new_title+"<br><br></b>"+HTML_poem
 
                         tmp_poem= "[A poem generated from template: "+ author+", "+ title +"]\n\n"+new_title+"\n\n"+poem_replaced
 
-                        #print tmp_poem
+                        print "\n******\n"+tmp_poem
                             #print "\nORIGINAL:",bio
 
                         txt_fn = id.split("_")[1]+"_POEMs.txt"
@@ -500,8 +513,31 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                         f_txt.write(tmp_poem)#.encode('utf-8'))       
                         f_txt.close();   
                         print "\nTXT file created at:",txt_fn_path
+
+                        
+                        # #######
+                        # #   write them all.... wasteful... but useful if run is interrupted....
+                        # ###########    
+                        # ALL_poems = ALL_poems.replace("$$datetime$$",datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
+                        # ALL_poems = ALL_poems.replace("$$cnt$$",str(cnt))
+                        # print "cnt",cnt
+                        # ALL_poems = ALL_poems.replace("$$gentime$$",str(time.time() - start_time))
+
+                        # # ALL POEMS
+                        # txt_fn = datetime.datetime.now().strftime('%Y-%m-%d_%H')+"_poetryFoundation_generatedPOEMS_"+type_of_run+".html"
+                        # txt_fn_path = DATA_DIR+"generated/POEMS/"+txt_fn
+                        # f_txt=open(txt_fn_path,'w')
+                        # f_txt.write(ALL_poems+"</hmtl>")       
+                        # f_txt.close();   
+                        # print "\nTXT file created at:",txt_fn_path
+
+
+
+
+
                     else:
                         "~~~~~~~~~~~~~~~~!!!!!!!!!! EMPTY response:", author
+
 
 
 
@@ -632,15 +668,16 @@ extractFeaturesAndWriteBio(READ_JSON_PATH,"txt")
 ALL_poems = ALL_poems.replace("$$datetime$$",datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
 ALL_poems = ALL_poems.replace("$$cnt$$",str(cnt))
 ALL_poems = ALL_poems.replace("$$gentime$$",str(time.time() - start_time))
-
-
+ALL_poems = ALL_poems.replace("  ","&nbsp")
 # ALL POEMS
 txt_fn = datetime.datetime.now().strftime('%Y-%m-%d_%H')+"_poetryFoundation_generatedPOEMS_"+type_of_run+".html"
 txt_fn_path = DATA_DIR+"generated/POEMS/"+txt_fn
 f_txt=open(txt_fn_path,'w')
-f_txt.write(ALL_poems+"</hmtl>")       
+f_txt.write(ALL_poems+"</hmtl>")   
+#f_txt.write(codecs.BOM_UTF16_BE)    
 f_txt.close();   
 print "\nTXT file created at:",txt_fn_path
+#print "ALL_poems:\n",ALL_poems
 
 
 # RESERVOIR
