@@ -18,9 +18,13 @@ personal_pronouns = ["i","me","we","us","you","she","her","he","him","it","they"
 import time
 start_time = time.time()
 
+from pattern.en import verbs, conjugate, PARTICIPLE
+from pattern.en import parse
+from pattern.en import article, referenced
+
 ################## WHEN TESTING CHANGE THIS ##########
 
-type_of_run="ALL"
+type_of_run="6"
 
 ######################################################
 
@@ -58,7 +62,8 @@ VBD=LISTS_ls[5].split(",")
 VBZ=LISTS_ls[7].split(",")
 #FW=LISTS_ls[9].split(",")
 #UH=LISTS_ls[11].split(",")
-print len(LISTS_ls),len(RB),len(JJ),len(VBD),len(VBZ)
+authors=LISTS_ls[13].split(" ~!~ ")
+print len(LISTS_ls),len(authors)
 
 #print JJ
 
@@ -84,7 +89,7 @@ for t in titles_ls:
         titles_ls.remove(t)
         #print "removing '"+t+"'"
 
-print "len(titles_ls):",len(titles_ls)
+#print "len(titles_ls):",len(titles_ls)
 
 keywords_dict = {}
 concepts_dict = {}
@@ -125,19 +130,21 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
 
                 # ID
                 id=file.split(".")[0]
-                print "\n\n*********\nID:",id
+                print "\nID:",id.split("_")[1]
 
                 filenames.append(id)
                 cnt+=1
 
                 # print('')
-                print('')
-                print('OPENED:',id)
-                print('')
+                # print('')
+                # print('OPENED:',id)
+                # print('')
                 # print('')
 
                 poem_replaced = ""
                 replacement_word = ""
+                previous_replacement_word = ""
+                
                 author=""
                 titles=""
                 title=""
@@ -152,7 +159,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                 ##########################
 
                 txt_fn_path = DATA_DIR + READ_TXT_PATH + id.split("_")[1]+".txt"
-                print "txt_fn_path:",txt_fn_path
+                # print "txt_fn_path:",txt_fn_path
 
                 if os.path.isfile(txt_fn_path) and cnt>0:
                     txt_data=open(txt_fn_path).read()
@@ -175,10 +182,11 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                     #print poem_replaced
 
                     ###############################
-                    # REPLACE AUTHOR NAME
+                    # REPLACE AUTHOR NAME in poem
                     ##############################
-                    author_ln=author.split(" ")[-1]
+                    author_ln=author.split(" ")[-1].lstrip()
                     author_fn=author.split(" ")[:-1]
+                    author = " ".join(n for n in author_fn)+author_ln
                     #
                     poem_replaced = poem_replaced.replace(author_ln,"Jhave")
 
@@ -187,7 +195,13 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                     #######################
                     #print "TITLES"]
                     new_title = getNewTitle("title").encode('utf-8')
-                             
+
+                    #######################
+                    # fake AUTHOR
+                    #######################
+                    
+                    new_author= " ".join(random.choice(authors).split(" ")[1:-2])+" "+random.choice(authors).split(" ")[-2]
+                    #print "new AUTHOR",new_author                           
 
                     ############################
                     # replace years with another
@@ -341,6 +355,11 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 if similarterm == "information technology":
                                     ##print "doth"
                                     similarterm = "it"
+                                if similarterm == "velleity":
+                                    ##print "doth"
+                                    similarterm = "want"
+
+                                    
 
                                 #######################################                      
                                 # abbreviations for fucking states!   #
@@ -425,7 +444,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 else:
                                     if len(hyp) <2 and "like" not in word_nopunct and import_utilities.singularize(word_nopunct) ==  import_utilities.singularize(replacement_word) and word_nopunct.lower() not in import_utilities.stopwords_ls:
 
-                                        if word_nopunct not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
+                                        if word not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
                                             
                                             #print "ADDING",word,"to reservoir"
                                             RESERVOIR.append(word)
@@ -444,39 +463,62 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 idx =  poem_ls.index(word)
 
 
-                                # #print idx,",", poem_ls[idx],",", word ,",",replacement_word
+                                # print idx,",", poem_ls[idx],",", word ,",",replacement_word
+                                #print word ," --- ",previous_replacement_word,replacement_word
+                                
 
-                                if poem_ls[idx]==word:
+                                # correct verb tense
+                                if previous_replacement_word == "I'm":
+                                    replacement_word = conjugate(replacement_word, tense=PARTICIPLE, parse=True)
+                                    print "conjugating: ", replacement_word
+
+                                if poem_ls[idx]==word and "****" not in word and "\n" not in word:
                                     poem_ls[idx]=replacement_word
                                 poem_replaced = " ".join(poem_ls)
 
 
-                                #poem_replaced = poem_replaced.replace(word,replacement_word)
+                                # store this word so that conjugation can be checked 
+                                previous_replacement_word=replacement_word
+
+                    ###########################################################################
+                    # testing Pattern.en as parser for conjugation and article replacement    #
+                    # much more robust than my hand-coded hacks                               #        
+                    ###########################################################################
+                    
+                    # correct CONJUGATion of paticiple verbs with pattern.en
+                    parsed = parse(poem_replaced,tags = True) 
+                    pre_verbal = ["'m","'s","'re"]
+                    for idx,p in enumerate(parsed.split(" ")):
+                        tok =p.split("/")[0]
+                        typ=p.split("/")[1]
+                        #print idx,tok,typ
+                        if tok in pre_verbal:
+                            #print "pre_verbal:",tok
+                            next_word=parsed.split(" ")[idx+1].split("/")#[1][:2]#,parsed.split(" ")[idx+1]
+                            #print  next_word,next_word[1][:2]
+                            # if it's a verb that follows
+                            if next_word[1][:2] =="VB":
+                                before_verb = " ".join(w for w in poem_replaced.split(" ")[:idx])#.encode('utf-8')
+                                after_verb = " ".join(w for w in poem_replaced.split(" ")[idx+1:])#.encode('utf-8') 
+                                new_verb = conjugate(poem_replaced.split(" ")[idx], tense=PARTICIPLE, parse=True).encode('utf-8')
+                                # insert new
+                                #print "CONJUGATION needed, changing:",poem_replaced.split(" ")[idx],"to",parsed.split(" ")[idx],poem_replaced.split(" ")[idx-1]+" "+new_verb
+                                poem_replaced = before_verb+" "+new_verb+" "+after_verb
 
 
-
-                    # CORRECT the "A" to "An"    
+                    # correct ARTICLES
                     for idx,word in enumerate(poem_replaced.split(" ")):
-                        # poem_replaced = poem_replaced+"A organism"
-                        if len(word)>0 and word[0].lower() in the_vowels and poem_replaced.split(" ")[idx-1].lower() =="a" :      
-                                if poem_replaced.split(" ")[idx-1] =="a":
-                                    old_str = "a "+poem_replaced.split(" ")[idx]    
-                                    new_str = "an "+poem_replaced.split(" ")[idx]
-                                else:
-                                    old_str = "A "+poem_replaced.split(" ")[idx]    
-                                    new_str = "An "+poem_replaced.split(" ")[idx]
-                                poem_replaced = poem_replaced.replace(old_str,new_str)
-
-                        # poem_replaced = poem_replaced+"An consonant"
-                        if len(word)>0 and word[0].lower() not in the_vowels and poem_replaced.split(" ")[idx-1].lower() =="an" :      
-                                if poem_replaced.split(" ")[idx-1] =="an":
-                                    old_str = "an "+poem_replaced.split(" ")[idx]    
-                                    new_str = "a "+poem_replaced.split(" ")[idx]
-                                else:
-                                    old_str = "An "+poem_replaced.split(" ")[idx]    
-                                    new_str = "A "+poem_replaced.split(" ")[idx]
-                                poem_replaced = poem_replaced.replace(old_str,new_str)
-                                #print "FOUND correction needed",old_str,new_str
+                        if len(word)>0 and idx != 0 and " " not in word:
+                            # A or AN
+                            if poem_replaced.split(" ")[idx-1].lower() =="a" or poem_replaced.split(" ")[idx-1].lower() =="an":
+                                #print word,"---",article(word)+" "+word
+                                before_article = " ".join(w for w in poem_replaced.split(" ")[:idx-1])
+                                after_article = " ".join(w for w in poem_replaced.split(" ")[idx+1:])
+                                new_conj = referenced(word)
+                                # capitalize
+                                if poem_replaced.split(" ")[idx-1].istitle():
+                                    new_conj = new_conj.split(" ")[0].title()+" "+new_conj.split(" ")[1]
+                                poem_replaced = before_article+" "+new_conj+" "+after_article
 
 
                     #########################
@@ -495,11 +537,11 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
 
                     if len(response) >0 and len(id.split("_"))>1:
                         # ALL_poems = ALL_poems_intro + " ".join(i for i in ALL_poems.split("</h2>.")[0:])+"<br><br>~~~~~~~~~~~~~~~~~~~~~~~~~~<br>[ A poem generated from template : <b>"+ author+"</b>, <i>"+ title +"</i> ]<br><br><b>"+new_title+"<br><br></b>"+HTML_poem
-                        ALL_poems += "<br><br>~~~~~~~~~~~~~~~~~~~~~~~~~~<br>[ A poem generated from template : <b>"+ author+"</b>, <i>"+ title +"</i> ]<br><br><b>"+new_title+"<br><br></b>"+HTML_poem
+                        ALL_poems += "<br>[ A  generated-poem based upon: <i>"+ title +"</i> by <b>"+ author+"</b>]<br><br><i>"+new_title+"</i><br><b> by "+ new_author   +"</b><br>"+HTML_poem
 
-                        tmp_poem= "[A poem generated from template: "+ author+", "+ title +"]\n\n"+new_title+"\n\n"+poem_replaced
+                        tmp_poem= "[A generated-poem based upon: '"+ title+"' by "+ author +"]\n\n"+new_title+ "\nby "+new_author+"\n"+poem_replaced
 
-                        print "\n******\n"+tmp_poem
+                        print "\n~~~\n\n"+tmp_poem
                             #print "\nORIGINAL:",bio
 
                         txt_fn = id.split("_")[1]+"_POEMs.txt"
@@ -512,7 +554,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                         f_txt=open(txt_fn_path,'w')
                         f_txt.write(tmp_poem)#.encode('utf-8'))       
                         f_txt.close();   
-                        print "\nTXT file created at:",txt_fn_path
+                        #print "\nTXT file created at:",txt_fn_path
 
                         
                         # #######
@@ -554,7 +596,7 @@ def getNewTitle(old_title):
     total = total_str.split(' ')
     random.shuffle(total)
     for w in total:
-        if total.index(w)%3:
+        if total.index(w)%4:
             new_title += w +" " 
 
     new_title = " ".join(w for w in new_title.split(" ") if " , " not in w)
@@ -648,7 +690,7 @@ def findSimilarEntityinRandomJSON(orig,typ):
             pass
             #print "entities response empty?",random.shuffle(json_files)
 
-    return "**** DID NOT FIND ****"
+    return orig#"**** DID NOT FIND ****"
 
 
 
@@ -668,7 +710,8 @@ extractFeaturesAndWriteBio(READ_JSON_PATH,"txt")
 ALL_poems = ALL_poems.replace("$$datetime$$",datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
 ALL_poems = ALL_poems.replace("$$cnt$$",str(cnt))
 ALL_poems = ALL_poems.replace("$$gentime$$",str(time.time() - start_time))
-ALL_poems = ALL_poems.replace("  ","&nbsp")
+
+ALL_poems = ALL_poems.split("</h2>")[0]+"</h2>"+ALL_poems.split("</h2>")[1].replace("  ","&nbsp")
 # ALL POEMS
 txt_fn = datetime.datetime.now().strftime('%Y-%m-%d_%H')+"_poetryFoundation_generatedPOEMS_"+type_of_run+".html"
 txt_fn_path = DATA_DIR+"generated/POEMS/"+txt_fn
