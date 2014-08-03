@@ -902,5 +902,95 @@ def moveBeginAndEndPunctuationFromStrToString(source,destination):
                         replacement = replacement + punc[posi.index(p)] 
     
     #print source,replacement              
-    return replacement  
+    return replacement 
+
+
+
+
+
+
+############################
+############################
+
+
+#
+# HELPR FUNCTION: FIND A SIMILAR WORD OF SIMILAR SIZE
+#
+
+#
+# HELPR FUNCTION: FIND A SIMILAR WORD OF SIMILAR SIZE
+#
+
+def synset_creeley(word):
+    
+
+    wordstring=word
+
+    # get rid of punctuation
+    #wordstring.translate(None, string.punctuation)
+    word_punct = strip_punctuation_bool(word)
+    word = word_punct['word']
+    punct = word_punct['punct']
+
+    syllableSize=syllables_en.count(word)
+
+    synsets = wn.synsets(word)
+    shuffle(synsets)
+    #print word,"synset:",synsets
+
+
+    replacement_candidates = []
+
+    for syns in synsets:
+
+        lemmas =  syns.lemma_names
+        # print "word:",word
+        # print "LEMMAS:",lemmas
+        # print "hypernyms:",syns.hypernyms()
+        # print "hyponyms:",syns.hyponyms()
+        # print "holonyms:",syns.member_holonyms()
+        # print syns,"antonyms:",syns.lemmas[0].antonyms()
+        
+        for w in lemmas:
+            replacement_candidates.append(w)
+
+        for w in syns.hyponyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.hypernyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.member_holonyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.member_meronyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        # for w in syns.member_synonyms():
+        #     replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.lemmas[0].antonyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.attributes():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.similar_tos():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.substance_meronyms():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        for w in syns.entailments():
+            replacement_candidates.append(w.name.split(".")[0])
+
+        replacement_candidates.sort(key=len)
+
+        #print word,replacement_candidates
+        if replacement_candidates[0] is not None:
+            return replacement_candidates[0]
+        else:
+            return word
+
+
 
