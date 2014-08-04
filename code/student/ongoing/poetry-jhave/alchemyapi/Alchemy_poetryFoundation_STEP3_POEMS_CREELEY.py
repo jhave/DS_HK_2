@@ -114,7 +114,7 @@ relation_dict = {}
 
 filenames = []
 
-ALL_poems_intro = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #949494; } .black { background: #121212; color: #949494; } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>" 
+ALL_poems_intro = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #000; } .black { background: #121212; color: #000; } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>" 
 ALL_poems=ALL_poems_intro
 bio=""
 
@@ -122,7 +122,7 @@ num_of_files = 0
 cnt=0
 
 # preliminare weird seeds
-prelim_weird_seed="uncompacted, selfhood, seeth, rainbow,lexical, haloing, butterflies, terracotta, fountaining, Nico, pigtails, wanna, unhoused, stripteasing, cramful, washpan, limekiln, pinpricks, prisoned, sphered, gingham, incestuous, flax, circulation, teapots, jugular, viperish, bulldog,  fingertips, hubcaps, cowlick, waterbed, maxed, chaliced, textual,  steamshovels, splint,, trophied, jampotfuls, naw, highpoints,  pulsebeat, twerpy, foamline"
+prelim_weird_seed="uncompacted, selfhood, seeth, rainbow,lexical, haloing, butterflies, terracotta, fountaining, pigtails, wanna, unhoused, stripteasing, cramful, washpan, limekiln, pinpricks, prisoned, sphered, gingham, incestuous, flax, circulation, teapots, jugular, viperish, bulldog,  fingertips, hubcaps, cowlick, waterbed, maxed, chaliced, textual,  steamshovels, splint,, trophied,naw, highpoints,  pulsebeat, twerpy, foamline"
 RESERVOIR=[w for w in prelim_weird_seed.split(",")]
 
 #################################################
@@ -374,14 +374,24 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                         # synset
                                         similarterm = import_utilities.synset_creeley(word_nopunct)
                                         #print "synset", similarterm
+
+                                        if similarterm is not None and similarterm == word_nopunct and len(word_nopunct)>5:
+                                            RESERVOIR.sort(key=len)
+                                            similarterm= RESERVOIR[idx%len(RESERVOIR)]
+                                            print idx,len(RESERVOIR),similarterm,word_nopunct,"PRE>>>>>>>>LAST CHANGE STOP: ", word, "~",similarterm
+
                                             
                                                           
                                 ############################################
                                 # manually get rid of some terrible choices
                                 ############################################
+                                naw_terms=["mind","lonely"]
                                 if similarterm == "ilk":
                                     ##print "like"
                                     similarterm = "like"
+                                if similarterm == "Nox":
+                                    ##print "like"
+                                    similarterm = "nite"
                                 if similarterm == "ope":
                                     ##print "doth"
                                     similarterm = "does"
@@ -394,8 +404,12 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 if similarterm == "Crataegus laevigata":
                                     ##print "doth"
                                     similarterm = "may"
-                                    
-
+                                if similarterm == "eff":
+                                    ##print "doth"
+                                    similarterm = "know"
+                                if similarterm == "naw":
+                                    ##print "doth"
+                                    similarterm = "mind"
                                 #######################################                      
                                 # abbreviations for fucking states!   #
                                 #######################################
@@ -490,7 +504,11 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                         if word not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
                                             
                                             #print "ADDING",word,"to reservoir"
-                                            RESERVOIR.append(word)
+                                            ############################
+                                            # ADDING ONLY SMALL WORDS
+                                            ############################
+                                            if len(word)<7:
+                                                RESERVOIR.append(word)
                                             
                                             replacement_word = random.choice(rap_mouth)# RESERVOIR)
                                             #print word_nopunct,"replaced from reservoir with", replacement_word
@@ -509,7 +527,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 # print idx,",", poem_ls[idx],",", word ,",",replacement_word
                                 #print word ," --- ",previous_replacement_word,replacement_word
                                 
-                                if len(word)>4 and replacement_word == word_nopunct:
+                                if len(word)>3 and replacement_word.lstrip().rstrip() == word_nopunct.lstrip().rstrip():
                                     # try alchemy?
 
                                     # a 
@@ -669,7 +687,7 @@ def getNewTitle(old_title):
         if total.index(w)%4:
             new_title += w +" " 
 
-    new_title = " ".join(w for w in new_title.split(" ") if " , " not in w)
+    new_title = " ".join(w for w in new_title.split(" ") if " , " not in w and len(w)<7)
 
     new_title = new_title.replace("Review","")
 
@@ -749,7 +767,10 @@ def findSimilarEntityinRandomJSON(orig,typ):
         #print "findSimilarEntityinRandomJSON in fn=",fn,len(response)
         
         if response != "failure" and response.get('entities') is not None:
-            random.shuffle(response['entities'])
+            # NOTED SORTED SO SMALLEST FIRST FOR CREELEY STYLE
+            response['entities'].sort(key=len)
+            # OR Shuffled....
+            #random.shuffle(response['entities'])
             for idx,entity in enumerate(response['entities']):
                 if orig.encode('utf-8') not in entity['text'].encode('utf-8')  and entity['type']==typ:
                     #print orig.encode('utf-8') ,"::",entity['text'].encode('utf-8')
