@@ -6,6 +6,9 @@ import os,sys,random, datetime
 
 import import_utilities
 
+# language check
+import enchant
+
 from pprint import pprint
 import re
 import codecs
@@ -113,7 +116,7 @@ relation_dict = {}
 
 filenames = []
 
-ALL_poems_intro = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #949494; } .black { background: #121212; color: #949494; } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>" 
+ALL_poems_intro = "<html xmlns='http://www.w3.org/1999/xhtml'><head>   <title>POEMs on BDP: Big-Data-Poetry</title><style type='text/css'>    body { margin: 40; padding: 20px; width: 85%; font: 14px Helvetica, Arial; }     table { border-collapse: collapse; }     form, td, p { margin: 20; padding: 0; } img { border: none; }  h4  { font: 18px ;}   a { color: #949494; text-decoration: none; } a:hover, .footer a { color: #2c2c2c; text-decoration: underline; }     a:focus { outline: none; }    .white { background: #fff; color: #000 } .black { background: #121212; color: #000 } .black a:hover, .black .footer a { color: #ddd; text-decoration: underline; } .header { padding: 70px 0 117px; position: relative;} .header, .footer { width: 750px; margin: 0 auto; } .body { width: 700px; margin: 20 auto; } .switcher { float: right; margin: 43px 0 0 0; cursor: pointer; } .switcher div { float: left; } .rss { float: right; margin-top: -53px;} </style> </head> <script> (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); ga('create', 'UA-1880979-1', 'auto'); ga('send', 'pageview'); </script><body class='white'> <table  width='70%' height='100%' border=0' align='center'> <tr><h1>$$cnt$$ Poems</h1><h2>generated in $$gentime$$ seconds on $$datetime$$</h2>" 
 ALL_poems=ALL_poems_intro
 bio=""
 
@@ -121,8 +124,11 @@ num_of_files = 0
 cnt=0
 
 # preliminare weird seeds
-prelim_weird_seed="uncompacted, selfhood, seeth, rainbow,lexical, haloing, butterflies, terracotta, fountaining, Nico, pigtails, wanna, unhoused, stripteasing, cramful, washpan, limekiln, pinpricks, prisoned, sphered, gingham, incestuous, flax, circulation, teapots, jugular, viperish, bulldog,  fingertips, hubcaps, cowlick, waterbed, maxed, chaliced, textual,  steamshovels, splint,, trophied, jampotfuls, naw, highpoints,  pulsebeat, twerpy, foamline"
+prelim_weird_seed="uncompacted, selfhood, seeth, rainbow,lexical, haloing, butterflies, terracotta, pigtails, cramful, limekiln, pinpricks, sphered, incestuous, flax, circulation, teapots, jugular, viperish, bulldog, pulsebeat, twerpy, foamline, midnight, rubies, overhill, snowfields, unopposed, island, flamingos, rivers, piney, feet, shipside, pontoons, poleward, silhouettes, mananged, boughs, mermaids, scalpel, wive, mermaid, repace, paradox, hurricane, bewarred, inconditions, halves, hysterics, psalm, college, daisy, sigle, underfoot, nowher, canst, elend, antimacassar, eland, indecipherables, appeas, jute, donking, inchling, thimbled, toothpicks, portraitured, strobing, schoolboy, fitt, thirtie, monstrus, therabowts, verie, lung, riverboat, mumbo, hast, overboard, faience, slipcover, semblable, incisors, excell, chough, deciduals, osseus, knurls, snowblue, dysmetrias, lawn, billiards, cairn, incompletion, immigrant, teeth, cricket, unexpiated, concert, auguries, sevenbranched, obsequies, electronic, incestuous, gewat, vulnere, unchosen, afternoon, truceless, pewter, porringers, tribal, sonnet, claus, cremini, graffitied, memories, replies, villagers, azalea, unbruised, possibilities, birdflight, moolit, despicing, fatfalls, lasering, backflips, unclenching, dine, gunmetal, gaggles, turnstiling, cockfight, fist, satchel, lunar, yong, mast, ulcerate, amore, squaderna, violescence, richening, else, wlenco, coupole, conch, textureless, smuggle, folklore, thereby, chorales, nevere, eaves, midair, friezes, stithies, phosphor, chapter, odds, constable, sacrileged, symposium, knives, selves, lumberyard, errands, birdless, pediment, clockwork, ashore, materialist, chloral, purgatory, bulkhead, barbell, wildfire, mudflats, honeycomb, modig, uprear, chas, instreaming, sequacious, croon, kidneys, muckers, pebbles, bedsheet, aftershock, chasmal, sandless, tulip, tufty, bilge, starlight, menthol, ought, horseshoe, hoofbeat, unhouseled, elfed, fumiter, crypt, arrowhead, blackberries, cumlus, wheaty, seedheads, bodies, wineskins, lives, drake, unbreathable, skulls, unison, cheerleaders, wheeze, crocodile, snook, allusions, chemo, alecks, whereabouts, women, alit, globbed, continents, mourn, leviathan, psychopomp, wend, spiring, eggshell, telekinetic, patet, loaves, satin, flies, sheriff, sickbed, granddaughter, windowsill, voile, scissor, crannied, chapters, bellies, adobe, logic, doth, thru, offguard, wives, babies, fantasies, nearreal, mobutu, leop, ardskinhat, whither, downpayment, boobies, gonna, tidal, scenario, puschamber, dopeskin, alaga, lifeboat, pagoda, insubmissive, whitehearted, carpenters, puppy, helmetlantern, commodore, scrapbook, horseshow, duke, fisted, unnested, outgrow, owling, staterooms, unto, cello, meine, gusting, zitronen, dunkeln, laub, goldorangen, liebe, uncapping, fireflies, tomorrow, clericals, oclock, tomorrows, manifesti, yestiddy, epitaphic, unmeant, farmhouse, breezeway, daisies, shatter, limpet, whooooo, carries, condominium, werian, indignity, frontyard, RadioShacks, ballpeen, ghetto, spraypaint, codpiece, gallantries, cows, heroine, booties, sans, anthologists, poetess, ghazal, roadward, swatches, whereupon, cyclamen, clunker, delyvere, kidney, earthen, donald, grenadilla, colonials, consul, conditioner, stingingted, entries, berries, beauties, atremble, campestrial, rainbow, repression, gobbed, cynicism, taxidermic, parabola, canto, ocullus, bumboat, smokehole, twentyseven, housekeeper, dominoes, stairwell, suburban, neutrinos, orchestra, disembody, dancefloor, feedback, cremation, synched, juiced, catacomb, wingtip, pebble, housedresses, millionaire, theodicy, discUnited, paUnited, elbowing, rifting, withness"
 RESERVOIR=[w for w in prelim_weird_seed.split(",")]
+
+
+english_dict = enchant.Dict("en_US")
 
 #################################################
 #                                                 #
@@ -351,7 +357,7 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 word_punct = word_punct_nopunct['punct']
                                 punct_bool = word_punct_nopunct['punct_bool']
 
-                             
+                                #print "word_nopunct:",word_nopunct
 
                                 #######################################################
                                 # MAIN EXCHANGE PROCESS CALL >>>>>>>   GET THE SYNSET #
@@ -371,27 +377,32 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                         # ... i.e. if noun & oscillator%3, do...
                                         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                         ############################################
+
+                                        similarterm = import_utilities.find_synset_word(word_nopunct)
+
                                         # synset
-                                        if oscillator%4==0:
-                                            # SYNSET
-                                            similarterm = import_utilities.find_synset_word(word_nopunct)
-                                            #print "synset", similarterm
+                                        # if oscillator%4==0:
+                                        #     # SYNSET
+                                        #     similarterm = import_utilities.find_synset_word(word_nopunct)
+                                        #     #print "synset", similarterm
                                             
-                                        elif oscillator%3==0:
-                                            # RAP MOUTH
-                                            similarterm = random.choice(rap_mouth)
-                                            #print "rap",similarterm
+                                        # elif oscillator%3==0:
+                                        #     # RAP MOUTH
+                                        #     similarterm = random.choice(rap_mouth)
+                                        #     #print "rap",similarterm
                                                                                   
-                                        # elif oscillator%2==0:
-                                        else:
-                                            # SCIENCE MOUTH
-                                            similarterm = random.choice(science_mouth) 
-                                            if similarterm.endswith('logy'):
-                                                    similarterm = similarterm[:-4]
-                                            if similarterm.endswith('o'):
-                                                    similarterm = similarterm[:-1]
+                                        # # elif oscillator%2==0:
+                                        # else:
+                                        #     similarterm = import_utilities.find_synset_word(word_nopunct)
+                                            # # SCIENCE MOUTH
+                                            # similarterm = random.choice(science_mouth) 
+                                            # if similarterm.endswith('logy'):
+                                            #         similarterm = similarterm[:-4]
+                                            # if similarterm.endswith('o'):
+                                            #         similarterm = similarterm[:-1]
                                             #print "science_mouth",similarterm 
-                                            #similarterm = random.choice(import_utilities.curses)
+                                            # if len(similarterm)<6:
+                                            #     similarterm = random.choice(import_utilities.curses)
                                         
                                         # else:
                                         #     # FILTH
@@ -421,7 +432,13 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                     similarterm = random.choice(import_utilities.curses)
                                 if similarterm == "ge":
                                     ##print "doth"
-                                    similarterm = random.choice(science_mouth)                                  
+                                    similarterm = random.choice(science_mouth)
+                                if similarterm.lower() == "nox":
+                                    ##print "doth"
+                                    similarterm = random.choice(science_mouth)
+                                if similarterm.lower() == "paunited":
+                                    print "################### paUnited ###################"
+                                    similarterm = word                                    
 
                                 #######################################                      
                                 # abbreviations for fucking states!   #
@@ -478,6 +495,9 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                     replacement_word = import_utilities.strip_underscore(replacement_word)
                                     replacement_word = import_utilities.replaceNumbers(replacement_word)
 
+
+                                #print "replacement_word:",replacement_word
+
                                 #########################
                                 # RESERVOIR_OF_WEIRDNESS  #
                                 #########################  
@@ -506,12 +526,15 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 else:
                                     if len(hyp) <2 and "like" not in word_nopunct and import_utilities.singularize(word_nopunct) ==  import_utilities.singularize(replacement_word) and word_nopunct.lower() not in import_utilities.stopwords_ls:
 
-                                        if word not in RESERVOIR and quit_language<0 and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
+                                        if word not in RESERVOIR and import_utilities.countPunctuation(word)<1 and len(word_nopunct)>3 and not word_nopunct.istitle(): 
                                             
-                                            #print "ADDING",word,"to reservoir"
-                                            RESERVOIR.append(word)
+                                        
+                                            if len(word)>4 and english_dict.check(word):
+                                                #print "ADDING",word,"to reservoir"
+                                                RESERVOIR.append(word)
+                                                #RESERVOIR = list(set())
                                             
-                                            replacement_word = random.choice(rap_mouth)# RESERVOIR)
+                                            replacement_word = random.choice(RESERVOIR)
                                             #print word_nopunct,"replaced from reservoir with", replacement_word
                                        # print "'"+word_nopunct+"'  vs RESERVOIR  replacement_word:",replacement_word #,"    new_line:",new_line
                                 if quit_language>1 and not word_nopunct.istitle():
@@ -529,8 +552,12 @@ def extractFeaturesAndWriteBio(READ_PATH,file_type):
                                 #print word ," --- ",previous_replacement_word,replacement_word
                                 
                                 try:
-
+                                    #print "poem_ls[idx]",poem_ls[idx],"word",word
                                     if poem_ls[idx]==word and "****" not in word and "." != word and "\n" not in word:
+                                        # if "\n" in word:
+                                        #     replacement_word=replacement_word+"\n"
+                                        # if replacement_word=="":
+                                        #     replacement_word=random.choice(RESERVOIR)
                                         poem_ls[idx]=replacement_word#.encode('utf-8')
                                         "REPLACE",word,"with",replacement_word
                                     poem_replaced = " ".join(poem_ls)
