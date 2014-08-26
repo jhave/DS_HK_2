@@ -10,31 +10,48 @@ from sklearn.manifold import TSNE
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 type_of_run="ALL"
-READ_PATH = "../../../../../data/poetryFoundation/txt_poems_"+type_of_run+"/"
+READ_PATH = "../../../../../data/poetry/ohhla/txt_poems_"+type_of_run+"/"
 
 cnt =0
 poems = []
 authors =[]
 titles = []
+ALBUMS =[]
+TYPED_BY = []
 ids=[]
+
+
+maxi =22222
 
 for subdir, dirs, files in os.walk(READ_PATH):
     for file in files:
         if ".txt" in file  and 'readme' not in file:
             if os.path.isfile(subdir+file):
-                #print subdir+file
-                txt_data=open(subdir+file).read()
-                txt_data_split = txt_data.split("****!****")
+                
+                cnt=cnt+1
+                if cnt<maxi:
+                    txt_data=open(subdir+file).read()
+                    txt_data_split = txt_data.split("****!****")
 
-                ids.append(file.split(".txt")[0])
-                authors.append(txt_data_split[0].strip("\n"))
-                titles.append(txt_data_split[1].strip("\n"))
-                pt =  re.sub('.*~~~~!~~~', '',txt_data_split[2])
-                poems.append(pt.strip("\n"))
+                    ids.append(file.split(".txt")[0])
+                    try:
+                        authors.append(txt_data_split[0].split(":")[1].strip(" \t\n"))
+                        titles.append(txt_data_split[2].split(":")[1].strip(" \t\n"))
+                        ALBUMS.append(txt_data_split[1].split(":")[1].strip(" \t\n"))
+                        TYPED_BY.append(txt_data_split[3].split(":")[1].strip(" \t\n"))
+                        # pt =  re.sub('.*~~~~!~~~', '',txt_data_split[2])
+                        # poems.append(pt.strip("\n"))
+                        poems.append(txt_data_split[4])
+                    except:
+                        print "ERROR. Skipping:",subdir+file
+                        pass
 
 # print authors
 # print titles
 # print poems
+# print ids
+# print ALBUMS
+
 
 vectors = TfidfVectorizer().fit_transform(poems)
 print("Tfid fit transform complete.")
@@ -66,7 +83,7 @@ def tsne(comp,perp,lr,init):
                     wspace=0.0, hspace=0.0)
     plt.scatter(X_embedded[:, 0], X_embedded[:, 1],
             c='black', marker=".")
-    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_poetryFoundation_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_1wh.png", transparent=False,dpi=300)
+    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_OHHLA_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_1wh.png", transparent=False,dpi=300)
 
 
     fig = plt.figure(figsize=(iw*2,ih*2))
@@ -77,7 +94,7 @@ def tsne(comp,perp,lr,init):
                     wspace=0.0, hspace=0.0)
     plt.scatter(X_embedded[:, 0], X_embedded[:, 1],
             c='black', marker=".")
-    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_poetryFoundation_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_2wh.png", transparent=False,dpi=300)
+    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_OHHLA_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_2wh.png", transparent=False,dpi=300)
 
     fig = plt.figure(figsize=(iw*3,ih*3))
     fig.patch.set_facecolor('white')
@@ -87,33 +104,47 @@ def tsne(comp,perp,lr,init):
                     wspace=0.0, hspace=0.0)
     plt.scatter(X_embedded[:, 0], X_embedded[:, 1],
             c='black', marker=".")
-    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_poetryFoundation_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_3wh.png", transparent=False,dpi=300)
+    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_OHHLA_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_3wh.png", transparent=False,dpi=300)
+
+    fig = plt.figure(figsize=(iw*4,ih*4))
+    fig.patch.set_facecolor('white')
+    ax = plt.axes(frameon=False)
+    plt.setp(ax, xticks=(), yticks=())
+    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=0.9,
+                    wspace=0.0, hspace=0.0)
+    plt.scatter(X_embedded[:, 0], X_embedded[:, 1],
+            c='black', marker=".")
+    fig.savefig("img/"+datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_TSNE_OHHLA_NO_ANNOTATION"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+"_300dpi_4wh.png", transparent=False,dpi=300)
 
 
     X = X_embedded.tolist()
     for idx,x in enumerate(X):
         x.extend([authors[idx], titles[idx], ids[idx]])
 
-    #print X
+        # x.extend([authors[idx], titles[idx], ALBUMS[idx], TYPED_BY[idx], ids[idx]])
+
+    # print X
     # SAVE to txt file as csv for later import to d3
-    txt_fn = datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_poetryFoundation_TSNE_"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+".txt"
+    txt_fn = datetime.datetime.now().strftime('%Y-%m-%d_%Hh%M')+"_OHHLA_TSNE_"+type_of_run+"_perp"+str(perp)+"_comp"+str(comp)+"_lr"+str(lr)+"_"+str(init)+".csv"
 
     txt_fn_path = "txt/"+txt_fn
     f_txt=open(txt_fn_path,'w')
+    #f_txt.write("x,y,author,title,ALBUM,TYPED_BY,id")
     f_txt.write("x,y,author,title,id")
+    
     for x in X:
         f_txt.write("\n")
         for idx,item in enumerate(x):
-          if idx == 4:
-            f_txt.write("\"%s\"" % item)
-          elif type(item) is str:
-            f_txt.write("\"%s\"," % item)
-          else:
-            f_txt.write("%s," % item)
+            if idx == 6:
+                f_txt.write("\"%s\"" % item)
+            elif type(item) is str:
+                f_txt.write("\"%s\"," % item)
+            else:
+                f_txt.write("%s," % item)
 
     f_txt.close();   
     "\nTXT file created at:",txt_fn_path
-
+    print X
 
 
 ''' |  init : string, optional (default: "random")
@@ -133,10 +164,17 @@ def tsne(comp,perp,lr,init):
 
 #tsne(2,50,100,'pca')  # LOWEST [t-SNE] Error after 280 iterations: 0.992306
 # tsne(2,50,100,'random')
-tsne(2,50,500,'pca')
-tsne(2,50,500,'random')
-tsne(2,50,1000,'pca')
+# tsne(2,50,500,'pca')
+# # tsne(2,50,500,'random')
+
+
+
+#tsne(2,40,1000,'pca')
+# tsne(2,40,1000,'random')
+# tsne(2,50,1000,'pca')
 tsne(2,50,1000,'random')
+# tsne(2,60,1000,'pca')
+# tsne(2,60,1000,'random')')
 
 # raising perplexity
 # tsne(2,30,100)
